@@ -13,7 +13,7 @@ export default function Home() {
       shadows
     >
       <Suspense fallback={null}>
-        <Viverse>
+        <Viverse clientId={process.env.NEXT_PUBLIC_VIVERSE_APP_ID || undefined}>
           <Scene />
         </Viverse>
       </Suspense>

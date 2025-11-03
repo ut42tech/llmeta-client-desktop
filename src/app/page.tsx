@@ -1,22 +1,27 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
-import { Viverse } from "@react-three/viverse";
+import { BvhPhysicsWorld } from "@react-three/viverse";
 import { Suspense } from "react";
 import { Scene } from "@/components/Scene";
 
 export default function Home() {
   return (
-    <Canvas
-      style={{ position: "absolute", inset: "0", touchAction: "none" }}
-      camera={{ fov: 90, position: [0, 2, 2] }}
-      shadows
-    >
-      <Suspense fallback={null}>
-        <Viverse clientId={process.env.NEXT_PUBLIC_VIVERSE_APP_ID || undefined}>
+    <BvhPhysicsWorld>
+      <Suspense fallback={null}></Suspense>
+      <Canvas
+        className="fixed! w-screen! h-screen! touch-none"
+        shadows
+        camera={{ position: [3, 3, 3], fov: 40 }}
+        gl={{
+          preserveDrawingBuffer: true,
+        }}
+        flat
+      >
+        <Suspense fallback={null}>
           <Scene />
-        </Viverse>
-      </Suspense>
-    </Canvas>
+        </Suspense>
+      </Canvas>
+    </BvhPhysicsWorld>
   );
 }

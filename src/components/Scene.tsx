@@ -8,7 +8,7 @@ import { useControls } from "leva";
 import { Suspense, useEffect, useRef } from "react";
 import { type DirectionalLight, Vector3 } from "three";
 import { InfiniteWorld } from "@/components/InfiniteWorld";
-import { useWorld } from "@/hooks/useWorld";
+import { useWorldStore } from "@/stores/worldStore";
 
 const LIGHT_OFFSET = new Vector3(2, 5, 2);
 const tmpVec = new Vector3();
@@ -17,7 +17,9 @@ export const Scene = () => {
   // debug
   const { softShadows } = useControls({ softShadows: true });
 
-  const computeCharacterCell = useWorld((state) => state.computeCharacterCell);
+  const updatePlayerGridCell = useWorldStore(
+    (state) => state.updatePlayerGridCell,
+  );
   const characterRef = useRef<SimpleCharacterImpl>(null);
   const directionalLight = useRef<DirectionalLight | null>(null);
   const { scene } = useThree();
@@ -42,7 +44,7 @@ export const Scene = () => {
       return;
     }
 
-    computeCharacterCell(character.position);
+    updatePlayerGridCell(character.position);
 
     // Keep the light aligned with the character so shadows stay accurate
     light.target.position.copy(character.position);

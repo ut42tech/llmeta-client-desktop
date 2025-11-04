@@ -3,54 +3,80 @@ import { BvhPhysicsBody, PrototypeBox } from "@react-three/viverse";
 import {
   GRID_CELL_SIZE,
   HALF_GRID_CELL_SIZE,
-  useWorld,
-} from "@/hooks/useWorld";
+  useWorldStore,
+} from "@/stores/worldStore";
+
+type GridCellProps = {
+  gridX: number;
+  gridY: number;
+  cellX: number;
+  cellY: number;
+};
+
+const GridCell = ({ gridX, gridY, cellX, cellY }: GridCellProps) => {
+  return (
+    <group position={[gridX * GRID_CELL_SIZE, 0, gridY * GRID_CELL_SIZE]}>
+      <BvhPhysicsBody kinematic>
+        <PrototypeBox
+          scale={[GRID_CELL_SIZE, 1, GRID_CELL_SIZE]}
+          position={[0, -2, 0]}
+        />
+      </BvhPhysicsBody>
+      <Text
+        fontSize={1}
+        position-y={-1.49}
+        rotation-x={-Math.PI / 2}
+        fontWeight={"bold"}
+        textAlign="center"
+        lineHeight={1}
+        receiveShadow
+      >
+        CELL{"\n"}[{cellX}, {cellY}]
+        <meshStandardMaterial color="white" />
+      </Text>
+    </group>
+  );
+};
 
 export const InfiniteWorld = ({ ...props }) => {
-  const gridPosition = useWorld((state) => state.gridPosition);
-  const gridSize = useWorld((state) => state.gridSize);
+  const currentGridCell = useWorldStore((state) => state.currentGridCell);
+  const visibleGridSize = useWorldStore((state) => state.visibleGridSize);
+
+  // Calculate grid centering offset
+  const halfGridWidth = visibleGridSize.x / 2;
+  const halfGridHeight = visibleGridSize.y / 2;
+  const centerOffsetX = -halfGridWidth * GRID_CELL_SIZE + HALF_GRID_CELL_SIZE;
+  const centerOffsetZ = -halfGridHeight * GRID_CELL_SIZE + HALF_GRID_CELL_SIZE;
+
+  // Generate grid cells
+  const gridCells = [];
+  for (let x = 0; x < visibleGridSize.x; x++) {
+    for (let y = 0; y < visibleGridSize.y; y++) {
+      const cellX = x + currentGridCell.x - Math.floor(halfGridWidth);
+      const cellY = y + currentGridCell.y - Math.floor(halfGridHeight);
+      const gridX = x + currentGridCell.x;
+      const gridY = y + currentGridCell.y;
+
+      gridCells.push(
+        <GridCell
+          key={`${x}-${y}`}
+          gridX={gridX}
+          gridY={gridY}
+          cellX={cellX}
+          cellY={cellY}
+        />,
+      );
+    }
+  }
+
   return (
     <group
       {...props}
-      position-x={(-gridSize.x / 2) * GRID_CELL_SIZE + HALF_GRID_CELL_SIZE} // Center the grid
+      position-x={centerOffsetX}
       position-y={-0.5}
-      position-z={(-gridSize.y / 2) * GRID_CELL_SIZE + HALF_GRID_CELL_SIZE} // Center the grid
+      position-z={centerOffsetZ}
     >
-      {Array.from({ length: gridSize.x }, (_, i) => i).map((x) =>
-        Array.from({ length: gridSize.y }, (_, j) => j).map((y) => {
-          const cellX = x + gridPosition.x - Math.floor(gridSize.x / 2);
-          const cellY = y + gridPosition.y - Math.floor(gridSize.y / 2);
-          return (
-            <group
-              key={`${x}-${y}`}
-              position={[
-                x * GRID_CELL_SIZE + gridPosition.x * GRID_CELL_SIZE,
-                0,
-                y * GRID_CELL_SIZE + gridPosition.y * GRID_CELL_SIZE,
-              ]}
-            >
-              <BvhPhysicsBody kinematic>
-                <PrototypeBox
-                  scale={[GRID_CELL_SIZE, 1, GRID_CELL_SIZE]}
-                  position={[0, -2, 0]}
-                />
-              </BvhPhysicsBody>
-              <Text
-                fontSize={1}
-                position-y={-1.49}
-                rotation-x={-Math.PI / 2}
-                fontWeight={"bold"}
-                textAlign="center"
-                lineHeight={1}
-                receiveShadow
-              >
-                CELL{"\n"}[{cellX}, {cellY}]
-                <meshStandardMaterial color="white" />
-              </Text>
-            </group>
-          );
-        }),
-      )}
+      {gridCells}
     </group>
   );
 };

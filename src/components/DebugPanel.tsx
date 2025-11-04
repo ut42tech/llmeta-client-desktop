@@ -13,7 +13,6 @@ export const DebugPanel = () => {
   const rotation = useLocalPlayerStore((state) => state.rotation);
   const id = useLocalPlayerStore((state) => state.id);
   const username = useLocalPlayerStore((state) => state.username);
-  const isMoving = useLocalPlayerStore((state) => state.isMoving);
   const animationState = useLocalPlayerStore((state) => state.animationState);
 
   // Room State
@@ -61,10 +60,6 @@ export const DebugPanel = () => {
       value: rotation.z,
       disabled: true,
     },
-    "Is Moving": {
-      value: isMoving,
-      disabled: true,
-    },
     Animation: {
       value: animationState,
       disabled: true,
@@ -105,18 +100,9 @@ export const DebugPanel = () => {
       "Rotation X": rotation.x,
       "Rotation Y": rotation.y,
       "Rotation Z": rotation.z,
-      "Is Moving": isMoving,
       Animation: animationState,
     });
-  }, [
-    position,
-    rotation,
-    id,
-    username,
-    isMoving,
-    animationState,
-    setPlayerControls,
-  ]);
+  }, [position, rotation, id, username, animationState, setPlayerControls]);
 
   useEffect(() => {
     setNetworkControls({

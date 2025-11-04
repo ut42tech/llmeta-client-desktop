@@ -1,8 +1,17 @@
-import { Euler, Vector3 } from "three";
+import { type AnimationAction, Euler, Vector3 } from "three";
 import { create } from "zustand";
 
 const INITIAL_PLAYER_POSITION = new Vector3(0, 0, 0);
 const INITIAL_PLAYER_ROTATION = new Euler(0, 0, 0);
+
+export type AnimationName =
+  | "walk"
+  | "run"
+  | "idle"
+  | "jumpUp"
+  | "jumpLoop"
+  | "jumpDown"
+  | "jumpForward";
 
 type LocalPlayerState = {
   // 位置・回転
@@ -14,11 +23,7 @@ type LocalPlayerState = {
   username: string;
 
   // 状態
-  isMoving: boolean;
-  animationState: string;
-
-  // ネットワーク同期用
-  lastSyncTime: number;
+  animationState: AnimationName;
 };
 
 type LocalPlayerActions = {
@@ -26,9 +31,8 @@ type LocalPlayerActions = {
   setRotation: (rotation: Euler) => void;
   setId: (id: string) => void;
   setUsername: (username: string) => void;
-  setMoving: (isMoving: boolean) => void;
-  setAnimationState: (state: string) => void;
-  updateLastSyncTime: () => void;
+  setAnimation: (state: AnimationName) => void;
+  setAction: (actions?: Record<string, AnimationAction | undefined>) => void;
   reset: () => void;
 };
 
@@ -39,9 +43,7 @@ const initialState: LocalPlayerState = {
   rotation: INITIAL_PLAYER_ROTATION.clone(),
   id: null,
   username: "Player",
-  isMoving: false,
   animationState: "idle",
-  lastSyncTime: 0,
 };
 
 export const useLocalPlayerStore = create<LocalPlayerStore>((set) => ({
@@ -65,16 +67,18 @@ export const useLocalPlayerStore = create<LocalPlayerStore>((set) => ({
     set({ username });
   },
 
-  setMoving: (isMoving: boolean) => {
-    set({ isMoving });
-  },
-
-  setAnimationState: (animationState: string) => {
+  setAnimation: (animationState: AnimationName) => {
     set({ animationState });
   },
 
-  updateLastSyncTime: () => {
-    set({ lastSyncTime: Date.now() });
+  setAction: (actions) => {
+    const activeAnimationName = actions
+      ? (Object.entries(actions).find(
+          ([, action]) =>
+            action?.isRunning() && (action.getEffectiveWeight?.() ?? 0) > 0,
+        )?.[0] as AnimationName | undefined)
+      : undefined;
+    set({ animationState: activeAnimationName ?? "idle" });
   },
 
   reset: () => {

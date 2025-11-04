@@ -1,6 +1,5 @@
 import type { Vector3 } from "three";
 import { create } from "zustand";
-import { useLocalPlayerStore } from "@/stores/localPlayerStore";
 
 // Grid constants
 export const GRID_CELL_SIZE = 20;
@@ -18,7 +17,7 @@ type WorldState = {
 };
 
 type WorldActions = {
-  updatePlayerGridCell: (position: Vector3) => void;
+  updateCurrentGridCell: (position: Vector3) => void;
 };
 
 type WorldStore = WorldState & WorldActions;
@@ -45,11 +44,8 @@ export const useWorldStore = create<WorldStore>((set) => ({
   visibleGridSize: { ...DEFAULT_VISIBLE_GRID_SIZE },
 
   // Actions
-  updatePlayerGridCell: (position: Vector3) => {
+  updateCurrentGridCell: (position: Vector3) => {
     const newGridCell = calculateGridCell(position);
-
-    // Update player position in local player store
-    useLocalPlayerStore.getState().setPosition(position);
 
     // Update grid cell only if it has changed
     set((state) => {

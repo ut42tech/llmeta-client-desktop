@@ -6,9 +6,10 @@ import {
 } from "@react-three/viverse";
 import { useControls } from "leva";
 import { Suspense, useEffect, useRef } from "react";
-import { type DirectionalLight, Vector3 } from "three";
+import { type DirectionalLight, Euler, Vector3 } from "three";
 import { DebugPanel } from "@/components/DebugPanel";
 import { InfiniteWorld } from "@/components/InfiniteWorld";
+import { useLocalPlayerStore } from "@/stores/localPlayerStore";
 import { useWorldStore } from "@/stores/worldStore";
 
 const LIGHT_OFFSET = new Vector3(2, 5, 2);
@@ -18,8 +19,12 @@ export const Scene = () => {
   // debug
   const { softShadows } = useControls({ softShadows: true });
 
-  const updatePlayerGridCell = useWorldStore(
-    (state) => state.updatePlayerGridCell,
+  const setPosition = useLocalPlayerStore((state) => state.setPosition);
+  const setRotation = useLocalPlayerStore((state) => state.setRotation);
+  const setAction = useLocalPlayerStore((state) => state.setAction);
+
+  const updateCurrentGridCell = useWorldStore(
+    (state) => state.updateCurrentGridCell,
   );
   const characterRef = useRef<SimpleCharacterImpl>(null);
   const directionalLight = useRef<DirectionalLight | null>(null);
@@ -45,7 +50,14 @@ export const Scene = () => {
       return;
     }
 
-    updatePlayerGridCell(character.position);
+    // Update player position and grid cell independently
+    setPosition(character.position);
+    setRotation(character.model?.scene.rotation || new Euler());
+
+    // Determine current animation state based on active action
+    setAction(character.actions);
+
+    updateCurrentGridCell(character.position);
 
     // Keep the light aligned with the character so shadows stay accurate
     light.target.position.copy(character.position);

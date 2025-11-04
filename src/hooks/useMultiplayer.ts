@@ -105,12 +105,15 @@ export const useMultiplayer = () => {
   useEffect(() => {
     if (!room) return;
 
-    const handlePlayerAdd = (player: PlayerState, sessionId: string) => {
-      if (sessionId === room.sessionId) return;
+    const changeListeners: Array<() => void> = [];
 
-      addPlayer(sessionId, player.username || "Player");
+    const setupPlayerListener = (player: PlayerState, sessionId: string) => {
+      if (sessionId === room.sessionId) {
+        return;
+      }
 
-      player.onChange?.(() => {
+      // Listen to player changes
+      const removeListener = player.onChange?.(() => {
         if (player.position) {
           updatePlayerPosition(
             sessionId,
@@ -131,16 +134,44 @@ export const useMultiplayer = () => {
           updatePlayerAnimation(sessionId, player.animation as AnimationName);
         }
       });
+
+      if (removeListener) {
+        changeListeners.push(removeListener);
+      }
+    };
+
+    const handlePlayerAdd = (player: PlayerState, sessionId: string) => {
+      if (sessionId === room.sessionId) {
+        return;
+      }
+
+      addPlayer(sessionId, player.username || "Player");
+      setupPlayerListener(player, sessionId);
     };
 
     const handlePlayerRemove = (_player: PlayerState, sessionId: string) => {
       removePlayer(sessionId);
     };
 
+    // First, add all existing players in the room
+    if (room.state.players) {
+      room.state.players.forEach((player: PlayerState, sessionId: string) => {
+        if (sessionId !== room.sessionId) {
+          addPlayer(sessionId, player.username || "Player");
+          setupPlayerListener(player, sessionId);
+        }
+      });
+    }
+
+    // Then listen for new players
     room.state.players?.onAdd?.(handlePlayerAdd);
     room.state.players?.onRemove?.(handlePlayerRemove);
 
     return () => {
+      // Remove all change listeners
+      for (const removeListener of changeListeners) {
+        removeListener();
+      }
       clearPlayers();
     };
   }, [

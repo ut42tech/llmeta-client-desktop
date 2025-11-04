@@ -13,6 +13,7 @@ export type RemotePlayer = {
 
 type RemotePlayersState = {
   players: Map<string, RemotePlayer>;
+  count: number;
 };
 
 type RemotePlayersActions = {
@@ -28,6 +29,7 @@ type RemotePlayersStore = RemotePlayersState & RemotePlayersActions;
 
 export const useRemotePlayersStore = create<RemotePlayersStore>((set) => ({
   players: new Map(),
+  count: 0,
 
   addPlayer: (id: string, username: string) => {
     set((state) => {
@@ -40,7 +42,8 @@ export const useRemotePlayersStore = create<RemotePlayersStore>((set) => ({
         animationState: "idle",
         lastUpdate: Date.now(),
       });
-      return { players: newPlayers };
+      const newCount = newPlayers.size;
+      return { players: newPlayers, count: newCount };
     });
   },
 
@@ -48,7 +51,8 @@ export const useRemotePlayersStore = create<RemotePlayersStore>((set) => ({
     set((state) => {
       const newPlayers = new Map(state.players);
       newPlayers.delete(id);
-      return { players: newPlayers };
+      const newCount = newPlayers.size;
+      return { players: newPlayers, count: newCount };
     });
   },
 
@@ -101,6 +105,6 @@ export const useRemotePlayersStore = create<RemotePlayersStore>((set) => ({
   },
 
   clear: () => {
-    set({ players: new Map() });
+    set({ players: new Map(), count: 0 });
   },
 }));

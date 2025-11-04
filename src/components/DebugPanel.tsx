@@ -18,7 +18,7 @@ export const DebugPanel = () => {
   // Multiplayer State
   const connectionState = useMultiplayerStore((state) => state.connectionState);
   const room = useMultiplayerStore((state) => state.room);
-  const remotePlayers = useRemotePlayersStore((state) => state.players);
+  const remotePlayersCount = useRemotePlayersStore((state) => state.count);
 
   // Levaコントロールとset関数を取得
   const [, setPlayerControls] = useControls("Local Player", () => ({
@@ -74,7 +74,7 @@ export const DebugPanel = () => {
       disabled: true,
     },
     "Remote Players": {
-      value: remotePlayers.size,
+      value: remotePlayersCount,
       disabled: true,
     },
   }));
@@ -99,9 +99,9 @@ export const DebugPanel = () => {
       "Connection Status": connectionState,
       "Room ID": room?.roomId || "Not connected",
       "Session ID": room?.sessionId || "Not connected",
-      "Remote Players": remotePlayers.size,
+      "Remote Players": remotePlayersCount,
     });
-  }, [connectionState, room, remotePlayers, setMultiplayerControls]);
+  }, [connectionState, room, remotePlayersCount, setMultiplayerControls]);
 
   return null; // UIは描画しない（Levaパネルのみ）
 };

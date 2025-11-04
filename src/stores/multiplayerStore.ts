@@ -5,11 +5,7 @@ import {
   MESSAGE_TYPES,
   ROOM_NAME,
 } from "@/constants/multiplayer";
-import type {
-  ConnectionState,
-  MyRoomState,
-  PlayerState,
-} from "@/types/colyseus";
+import type { ConnectionState, MyRoomState } from "@/types/colyseus";
 
 type MultiplayerState = {
   client: Colyseus.Client | null;
@@ -45,16 +41,6 @@ const setupRoomHandlers = (
   room: Colyseus.Room<MyRoomState>,
   set: (partial: Partial<MultiplayerState>) => void,
 ) => {
-  // Handle player joined
-  room.state.players?.onAdd?.((player: PlayerState, sessionId: string) => {
-    console.log("Player joined:", sessionId, player.username);
-  });
-
-  // Handle player left
-  room.state.players?.onRemove?.((_player: PlayerState, sessionId: string) => {
-    console.log("Player left:", sessionId);
-  });
-
   // Handle room errors
   room.onError((code, message) => {
     console.error("Room error:", code, message);
@@ -79,7 +65,6 @@ export const useMultiplayerStore = create<MultiplayerStore>((set, get) => ({
     const { client, connectionState, serverUrl } = get();
 
     if (connectionState === "connected" || connectionState === "connecting") {
-      console.warn("Already connected or connecting");
       return;
     }
 
@@ -90,8 +75,6 @@ export const useMultiplayerStore = create<MultiplayerStore>((set, get) => ({
       const room = await colyseusClient.joinOrCreate<MyRoomState>(ROOM_NAME, {
         username,
       });
-
-      console.log("Connected to room:", room.roomId);
 
       setupRoomHandlers(room, set);
 

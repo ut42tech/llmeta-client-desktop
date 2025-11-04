@@ -1,16 +1,23 @@
-// Colyseus State Schema types
+/**
+ * Colyseus State Schema types
+ */
+
+export interface Position {
+  x: number;
+  y: number;
+  z: number;
+}
+
+export interface Rotation {
+  x: number;
+  y: number;
+  z: number;
+}
+
 export interface PlayerState {
   username: string;
-  position: {
-    x: number;
-    y: number;
-    z: number;
-  };
-  rotation: {
-    x: number;
-    y: number;
-    z: number;
-  };
+  position: Position;
+  rotation: Rotation;
   animation: string;
   onChange?: (callback: () => void) => void;
 }
@@ -25,3 +32,9 @@ export interface MyRoomState {
     ) => void;
   };
 }
+
+export type ConnectionState =
+  | "disconnected"
+  | "connecting"
+  | "connected"
+  | "error";

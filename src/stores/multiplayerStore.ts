@@ -1,8 +1,15 @@
 import * as Colyseus from "colyseus.js";
 import { create } from "zustand";
-import type { MyRoomState, PlayerState } from "@/types/colyseus";
-
-type ConnectionState = "disconnected" | "connecting" | "connected" | "error";
+import {
+  DEFAULT_SERVER_URL,
+  MESSAGE_TYPES,
+  ROOM_NAME,
+} from "@/constants/multiplayer";
+import type {
+  ConnectionState,
+  MyRoomState,
+  PlayerState,
+} from "@/types/colyseus";
 
 type MultiplayerState = {
   client: Colyseus.Client | null;
@@ -23,15 +30,42 @@ type MultiplayerActions = {
 
 type MultiplayerStore = MultiplayerState & MultiplayerActions;
 
-const DEFAULT_SERVER_URL =
-  process.env.NEXT_PUBLIC_COLYSEUS_SERVER_URL || "ws://localhost:2567";
-
 const initialState: MultiplayerState = {
   client: null,
   room: null,
   connectionState: "disconnected",
   error: null,
   serverUrl: DEFAULT_SERVER_URL,
+};
+
+/**
+ * Setup room event handlers
+ */
+const setupRoomHandlers = (
+  room: Colyseus.Room<MyRoomState>,
+  set: (partial: Partial<MultiplayerState>) => void,
+) => {
+  // Handle player joined
+  room.state.players?.onAdd?.((player: PlayerState, sessionId: string) => {
+    console.log("Player joined:", sessionId, player.username);
+  });
+
+  // Handle player left
+  room.state.players?.onRemove?.((_player: PlayerState, sessionId: string) => {
+    console.log("Player left:", sessionId);
+  });
+
+  // Handle room errors
+  room.onError((code, message) => {
+    console.error("Room error:", code, message);
+    set({ connectionState: "error", error: message });
+  });
+
+  // Handle room leave
+  room.onLeave((code) => {
+    console.log("Left room with code:", code);
+    set({ connectionState: "disconnected", room: null });
+  });
 };
 
 export const useMultiplayerStore = create<MultiplayerStore>((set, get) => ({
@@ -52,39 +86,14 @@ export const useMultiplayerStore = create<MultiplayerStore>((set, get) => ({
     try {
       set({ connectionState: "connecting", error: null });
 
-      // Create client if it doesn't exist
       const colyseusClient = client || new Colyseus.Client(serverUrl);
-
-      // Join or create room
-      const room = await colyseusClient.joinOrCreate<MyRoomState>("my_room", {
+      const room = await colyseusClient.joinOrCreate<MyRoomState>(ROOM_NAME, {
         username,
       });
 
       console.log("Connected to room:", room.roomId);
 
-      // Handle player joined
-      room.state.players?.onAdd?.((player: PlayerState, sessionId: string) => {
-        console.log("Player joined:", sessionId, player);
-      });
-
-      // Handle player left
-      room.state.players?.onRemove?.(
-        (_player: PlayerState, sessionId: string) => {
-          console.log("Player left:", sessionId);
-        },
-      );
-
-      // Handle room errors
-      room.onError((code, message) => {
-        console.error("Room error:", code, message);
-        set({ connectionState: "error", error: message });
-      });
-
-      // Handle room leave
-      room.onLeave((code) => {
-        console.log("Left room with code:", code);
-        set({ connectionState: "disconnected", room: null });
-      });
+      setupRoomHandlers(room, set);
 
       set({
         client: colyseusClient,
@@ -117,31 +126,22 @@ export const useMultiplayerStore = create<MultiplayerStore>((set, get) => ({
 
   sendPosition: (x: number, y: number, z: number) => {
     const { room } = get();
+    if (!room) return;
 
-    if (!room) {
-      return;
-    }
-
-    room.send("position", { x, y, z });
+    room.send(MESSAGE_TYPES.POSITION, { x, y, z });
   },
 
   sendRotation: (x: number, y: number, z: number) => {
     const { room } = get();
+    if (!room) return;
 
-    if (!room) {
-      return;
-    }
-
-    room.send("rotation", { x, y, z });
+    room.send(MESSAGE_TYPES.ROTATION, { x, y, z });
   },
 
   sendAnimation: (animation: string) => {
     const { room } = get();
+    if (!room) return;
 
-    if (!room) {
-      return;
-    }
-
-    room.send("animation", { animation });
+    room.send(MESSAGE_TYPES.ANIMATION, { animation });
   },
 }));

@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { useLocalPlayerStore } from "@/stores/localPlayerStore";
 import { useMultiplayerStore } from "@/stores/multiplayerStore";
 
+/**
+ * Multiplayer connection UI component
+ */
 export const MultiplayerConnection = () => {
   const [username, setUsername] = useState("");
   const [isConnecting, setIsConnecting] = useState(false);
@@ -14,7 +17,6 @@ export const MultiplayerConnection = () => {
   const localUsername = useLocalPlayerStore((state) => state.username);
   const setLocalUsername = useLocalPlayerStore((state) => state.setUsername);
 
-  // Initialize username with local player's username
   useEffect(() => {
     if (!username && localUsername) {
       setUsername(localUsername);
@@ -44,6 +46,8 @@ export const MultiplayerConnection = () => {
     }
   };
 
+  const isButtonDisabled = isConnecting || !username.trim();
+
   return (
     <div className="fixed top-2 left-1/2 -translate-x-1/2 z-50 bg-black/80 text-white p-2.5 rounded min-w-[200px]">
       <div className="mb-2.5 font-bold">Multiplayer</div>
@@ -63,7 +67,7 @@ export const MultiplayerConnection = () => {
           <button
             type="button"
             onClick={handleConnect}
-            disabled={isConnecting || !username.trim()}
+            disabled={isButtonDisabled}
             className="w-full p-1.5 rounded-sm border-none bg-blue-600 text-white cursor-pointer disabled:bg-gray-600 disabled:cursor-not-allowed"
           >
             {isConnecting ? "Connecting..." : "Connect"}
@@ -92,7 +96,7 @@ export const MultiplayerConnection = () => {
           <button
             type="button"
             onClick={handleConnect}
-            disabled={isConnecting || !username.trim()}
+            disabled={isButtonDisabled}
             className="w-full p-1.5 rounded-sm border-none bg-blue-600 text-white cursor-pointer disabled:bg-gray-600 disabled:cursor-not-allowed"
           >
             Retry

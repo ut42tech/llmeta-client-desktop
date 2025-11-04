@@ -10,12 +10,23 @@ type RemotePlayerProps = {
 
 const LERP_FACTOR = 0.1;
 
+/**
+ * Calculate shortest rotation difference considering wrapping
+ */
+const getShortestRotationDiff = (target: number, current: number): number => {
+  const diff = target - current;
+  return ((diff + Math.PI) % (Math.PI * 2)) - Math.PI;
+};
+
+/**
+ * Remote player component with smooth interpolation
+ */
 export const RemotePlayer = ({ player }: RemotePlayerProps) => {
   const groupRef = useRef<Group>(null);
   const targetPosition = useRef(player.position.clone());
   const targetRotation = useRef(player.rotation.clone());
 
-  // Update target position and rotation when player data changes
+  // Update targets when player data changes
   targetPosition.current = player.position.clone();
   targetRotation.current = player.rotation.clone();
 
@@ -23,16 +34,14 @@ export const RemotePlayer = ({ player }: RemotePlayerProps) => {
     const group = groupRef.current;
     if (!group) return;
 
-    // Smooth interpolation for position
+    // Smooth position interpolation
     group.position.lerp(targetPosition.current, LERP_FACTOR);
 
-    // Smooth interpolation for rotation (Y-axis only for character orientation)
-    const currentY = group.rotation.y;
-    const targetY = targetRotation.current.y;
-    const diff = targetY - currentY;
-
-    // Handle rotation wrapping
-    const shortestDiff = ((diff + Math.PI) % (Math.PI * 2)) - Math.PI;
+    // Smooth rotation interpolation (Y-axis only)
+    const shortestDiff = getShortestRotationDiff(
+      targetRotation.current.y,
+      group.rotation.y,
+    );
     group.rotation.y += shortestDiff * LERP_FACTOR;
   });
 

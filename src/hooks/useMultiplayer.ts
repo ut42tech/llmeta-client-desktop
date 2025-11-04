@@ -3,8 +3,33 @@ import type { AnimationName } from "@/stores/localPlayerStore";
 import { useLocalPlayerStore } from "@/stores/localPlayerStore";
 import { useMultiplayerStore } from "@/stores/multiplayerStore";
 import { useRemotePlayersStore } from "@/stores/remotePlayersStore";
-import type { PlayerState } from "@/types/colyseus";
+import type { PlayerState, Position, Rotation } from "@/types/colyseus";
 
+/**
+ * Check if position has changed
+ */
+const hasPositionChanged = (current: Position, previous: Position): boolean => {
+  return (
+    current.x !== previous.x ||
+    current.y !== previous.y ||
+    current.z !== previous.z
+  );
+};
+
+/**
+ * Check if rotation has changed
+ */
+const hasRotationChanged = (current: Rotation, previous: Rotation): boolean => {
+  return (
+    current.x !== previous.x ||
+    current.y !== previous.y ||
+    current.z !== previous.z
+  );
+};
+
+/**
+ * Hook to manage multiplayer synchronization
+ */
 export const useMultiplayer = () => {
   const room = useMultiplayerStore((state) => state.room);
   const connectionState = useMultiplayerStore((state) => state.connectionState);
@@ -30,40 +55,43 @@ export const useMultiplayer = () => {
   );
   const clearPlayers = useRemotePlayersStore((state) => state.clear);
 
-  // Track previous values to avoid unnecessary sends
-  const lastSentPosition = useRef({ x: 0, y: 0, z: 0 });
-  const lastSentRotation = useRef({ x: 0, y: 0, z: 0 });
+  const lastSentPosition = useRef<Position>({ x: 0, y: 0, z: 0 });
+  const lastSentRotation = useRef<Rotation>({ x: 0, y: 0, z: 0 });
   const lastSentAnimation = useRef<AnimationName>("idle");
 
-  // Send local player position to server
+  // Sync local player position
   useEffect(() => {
     if (connectionState !== "connected" || !room) return;
 
-    const { x, y, z } = localPosition;
-    const last = lastSentPosition.current;
+    const currentPosition = {
+      x: localPosition.x,
+      y: localPosition.y,
+      z: localPosition.z,
+    };
 
-    // Only send if position has changed
-    if (x !== last.x || y !== last.y || z !== last.z) {
-      sendPosition(x, y, z);
-      lastSentPosition.current = { x, y, z };
+    if (hasPositionChanged(currentPosition, lastSentPosition.current)) {
+      sendPosition(currentPosition.x, currentPosition.y, currentPosition.z);
+      lastSentPosition.current = currentPosition;
     }
   }, [localPosition, connectionState, room, sendPosition]);
 
-  // Send local player rotation to server
+  // Sync local player rotation
   useEffect(() => {
     if (connectionState !== "connected" || !room) return;
 
-    const { x, y, z } = localRotation;
-    const last = lastSentRotation.current;
+    const currentRotation = {
+      x: localRotation.x,
+      y: localRotation.y,
+      z: localRotation.z,
+    };
 
-    // Only send if rotation has changed
-    if (x !== last.x || y !== last.y || z !== last.z) {
-      sendRotation(x, y, z);
-      lastSentRotation.current = { x, y, z };
+    if (hasRotationChanged(currentRotation, lastSentRotation.current)) {
+      sendRotation(currentRotation.x, currentRotation.y, currentRotation.z);
+      lastSentRotation.current = currentRotation;
     }
   }, [localRotation, connectionState, room, sendRotation]);
 
-  // Send local player animation to server
+  // Sync local player animation
   useEffect(() => {
     if (connectionState !== "connected" || !room) return;
 
@@ -73,18 +101,15 @@ export const useMultiplayer = () => {
     }
   }, [localAnimation, connectionState, room, sendAnimation]);
 
-  // Listen to room state changes
+  // Setup remote players synchronization
   useEffect(() => {
     if (!room) return;
 
-    // Handle player additions
     const handlePlayerAdd = (player: PlayerState, sessionId: string) => {
-      // Don't add ourselves
       if (sessionId === room.sessionId) return;
 
       addPlayer(sessionId, player.username || "Player");
 
-      // Listen to player updates
       player.onChange?.(() => {
         if (player.position) {
           updatePlayerPosition(
@@ -108,16 +133,13 @@ export const useMultiplayer = () => {
       });
     };
 
-    // Handle player removals
     const handlePlayerRemove = (_player: PlayerState, sessionId: string) => {
       removePlayer(sessionId);
     };
 
-    // Register listeners
     room.state.players?.onAdd?.(handlePlayerAdd);
     room.state.players?.onRemove?.(handlePlayerRemove);
 
-    // Cleanup
     return () => {
       clearPlayers();
     };

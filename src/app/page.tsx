@@ -6,6 +6,7 @@ import { Canvas } from "@react-three/fiber";
 import { BvhPhysicsWorld } from "@react-three/viverse";
 import { useControls } from "leva";
 import { Suspense } from "react";
+import { MultiplayerConnection } from "@/components/MultiplayerConnection";
 import { Scene } from "@/components/Scene";
 
 export default function Home() {
@@ -15,6 +16,7 @@ export default function Home() {
   return (
     <>
       {stats && <Stats />}
+      <MultiplayerConnection />
       <BvhPhysicsWorld>
         <Canvas
           className="fixed! w-screen! h-screen! touch-none"

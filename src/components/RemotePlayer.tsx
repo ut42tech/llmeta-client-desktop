@@ -1,0 +1,58 @@
+import { Text } from "@react-three/drei";
+import { useFrame } from "@react-three/fiber";
+import { useRef } from "react";
+import type { Group } from "three";
+import type { RemotePlayer as RemotePlayerType } from "@/stores/remotePlayersStore";
+
+type RemotePlayerProps = {
+  player: RemotePlayerType;
+};
+
+const LERP_FACTOR = 0.1;
+
+export const RemotePlayer = ({ player }: RemotePlayerProps) => {
+  const groupRef = useRef<Group>(null);
+  const targetPosition = useRef(player.position.clone());
+  const targetRotation = useRef(player.rotation.clone());
+
+  // Update target position and rotation when player data changes
+  targetPosition.current = player.position.clone();
+  targetRotation.current = player.rotation.clone();
+
+  useFrame(() => {
+    const group = groupRef.current;
+    if (!group) return;
+
+    // Smooth interpolation for position
+    group.position.lerp(targetPosition.current, LERP_FACTOR);
+
+    // Smooth interpolation for rotation (Y-axis only for character orientation)
+    const currentY = group.rotation.y;
+    const targetY = targetRotation.current.y;
+    const diff = targetY - currentY;
+
+    // Handle rotation wrapping
+    const shortestDiff = ((diff + Math.PI) % (Math.PI * 2)) - Math.PI;
+    group.rotation.y += shortestDiff * LERP_FACTOR;
+  });
+
+  return (
+    <group ref={groupRef}>
+      <mesh position={[0, 0.5, 0]}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial color="hotpink" />
+      </mesh>
+      <Text
+        position={[0, 1.5, 0]}
+        fontSize={0.3}
+        color="white"
+        anchorX="center"
+        anchorY="middle"
+        outlineWidth={0.02}
+        outlineColor="black"
+      >
+        {player.username}
+      </Text>
+    </group>
+  );
+};

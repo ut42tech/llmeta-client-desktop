@@ -9,6 +9,8 @@ import { Suspense, useEffect, useRef } from "react";
 import { type DirectionalLight, Euler, Vector3 } from "three";
 import { DebugPanel } from "@/components/DebugPanel";
 import { InfiniteWorld } from "@/components/InfiniteWorld";
+import { RemotePlayers } from "@/components/RemotePlayers";
+import { useMultiplayer } from "@/hooks/useMultiplayer";
 import { useLocalPlayerStore } from "@/stores/localPlayerStore";
 import { useWorldStore } from "@/stores/worldStore";
 
@@ -18,6 +20,9 @@ const tmpVec = new Vector3();
 export const Scene = () => {
   // debug
   const { softShadows } = useControls({ softShadows: true });
+
+  // Initialize multiplayer hooks
+  useMultiplayer();
 
   const setPosition = useLocalPlayerStore((state) => state.setPosition);
   const setRotation = useLocalPlayerStore((state) => state.setRotation);
@@ -87,6 +92,10 @@ export const Scene = () => {
 
       <Suspense>
         <SimpleCharacter ref={characterRef} />
+      </Suspense>
+
+      <Suspense>
+        <RemotePlayers />
       </Suspense>
 
       <Suspense>

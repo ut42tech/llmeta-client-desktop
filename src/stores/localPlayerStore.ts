@@ -4,6 +4,17 @@ import { create } from "zustand";
 const INITIAL_PLAYER_POSITION = new Vector3(0, 0, 0);
 const INITIAL_PLAYER_ROTATION = new Euler(0, 0, 0);
 
+/**
+ * Round a number to the specified decimal places
+ * @param value - The number to round
+ * @param decimals - Number of decimal places (default: 2)
+ * @returns Rounded number
+ */
+const roundToDecimals = (value: number, decimals = 2): number => {
+  const multiplier = 10 ** decimals;
+  return Math.round(value * multiplier) / multiplier;
+};
+
 export type AnimationName =
   | "walk"
   | "run"
@@ -52,11 +63,27 @@ export const useLocalPlayerStore = create<LocalPlayerStore>((set) => ({
 
   // Actions
   setPosition: (position: Vector3) => {
-    set({ position: position.clone() });
+    const roundedPosition = position.clone();
+    roundedPosition.x = roundToDecimals(roundedPosition.x);
+    roundedPosition.y = roundToDecimals(roundedPosition.y);
+    roundedPosition.z = roundToDecimals(roundedPosition.z);
+    set({ position: roundedPosition });
   },
 
   setRotation: (rotation: Euler) => {
-    set({ rotation: rotation.clone() });
+    const normalizedRotation = rotation.clone();
+    // Normalize rotation values to [-π, π] range
+    normalizedRotation.x =
+      ((normalizedRotation.x + Math.PI) % (2 * Math.PI)) - Math.PI;
+    normalizedRotation.y =
+      ((normalizedRotation.y + Math.PI) % (2 * Math.PI)) - Math.PI;
+    normalizedRotation.z =
+      ((normalizedRotation.z + Math.PI) % (2 * Math.PI)) - Math.PI;
+    // Round rotation values to 2 decimal places
+    normalizedRotation.x = roundToDecimals(normalizedRotation.x);
+    normalizedRotation.y = roundToDecimals(normalizedRotation.y);
+    normalizedRotation.z = roundToDecimals(normalizedRotation.z);
+    set({ rotation: normalizedRotation });
   },
 
   setId: (id: string) => {

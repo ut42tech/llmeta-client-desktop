@@ -9,6 +9,7 @@ import { Suspense, useEffect, useRef } from "react";
 import { type DirectionalLight, Euler, Vector3 } from "three";
 import { DebugPanel } from "@/components/DebugPanel";
 import { InfiniteWorld } from "@/components/InfiniteWorld";
+import { RemotePlayers } from "@/components/RemotePlayers";
 import { useLocalPlayerStore } from "@/stores/localPlayerStore";
 import { useWorldStore } from "@/stores/worldStore";
 
@@ -91,6 +92,10 @@ export const Scene = () => {
 
       <Suspense>
         <InfiniteWorld />
+      </Suspense>
+
+      <Suspense>
+        <RemotePlayers />
       </Suspense>
     </>
   );

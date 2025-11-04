@@ -6,6 +6,7 @@ import { Canvas } from "@react-three/fiber";
 import { BvhPhysicsWorld } from "@react-three/viverse";
 import { useControls } from "leva";
 import { Suspense } from "react";
+import { MultiplayerProvider } from "@/components/MultiplayerProvider";
 import { Scene } from "@/components/Scene";
 
 export default function Home() {
@@ -13,7 +14,7 @@ export default function Home() {
   const { stats } = useControls({ stats: true });
 
   return (
-    <>
+    <MultiplayerProvider>
       {stats && <Stats />}
       <BvhPhysicsWorld>
         <Canvas
@@ -30,6 +31,6 @@ export default function Home() {
           </Suspense>
         </Canvas>
       </BvhPhysicsWorld>
-    </>
+    </MultiplayerProvider>
   );
 }

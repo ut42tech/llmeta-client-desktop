@@ -50,6 +50,11 @@ export const Scene = () => {
       return;
     }
 
+    // Reset position if fallen below threshold
+    if (character.position.y < -10) {
+      character.position.copy(new Vector3());
+    }
+
     // Update player position and grid cell independently
     setPosition(character.position);
     setRotation(character.model?.scene.rotation || new Euler());

@@ -6,6 +6,7 @@ import { Canvas } from "@react-three/fiber";
 import { BvhPhysicsWorld } from "@react-three/viverse";
 import { useControls } from "leva";
 import { Suspense } from "react";
+import { ColyseusManager } from "@/components/ColyseusManager";
 import { Scene } from "@/components/Scene";
 
 export default function Home() {
@@ -14,6 +15,7 @@ export default function Home() {
 
   return (
     <>
+      <ColyseusManager />
       {stats && <Stats />}
       <BvhPhysicsWorld>
         <Canvas

@@ -1,6 +1,6 @@
 import type { Vector3 } from "three";
 import { create } from "zustand";
-import { usePlayerStore } from "@/stores/playerStore";
+import { useLocalPlayerStore } from "@/stores/localPlayerStore";
 
 // Grid constants
 export const GRID_CELL_SIZE = 20;
@@ -48,8 +48,8 @@ export const useWorldStore = create<WorldStore>((set) => ({
   updatePlayerGridCell: (position: Vector3) => {
     const newGridCell = calculateGridCell(position);
 
-    // Update player position in player store
-    usePlayerStore.getState().setPosition(position);
+    // Update player position in local player store
+    useLocalPlayerStore.getState().setPosition(position);
 
     // Update grid cell only if it has changed
     set((state) => {

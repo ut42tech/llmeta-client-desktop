@@ -7,6 +7,7 @@ import {
 import { useControls } from "leva";
 import { Suspense, useEffect, useRef } from "react";
 import { type DirectionalLight, Vector3 } from "three";
+import { DebugPanel } from "@/components/DebugPanel";
 import { InfiniteWorld } from "@/components/InfiniteWorld";
 import { useWorldStore } from "@/stores/worldStore";
 
@@ -54,6 +55,8 @@ export const Scene = () => {
 
   return (
     <>
+      <DebugPanel />
+
       {softShadows && <SoftShadows />}
 
       <Sky />

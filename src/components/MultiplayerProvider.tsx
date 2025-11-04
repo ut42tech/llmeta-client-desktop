@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useLocalPlayerStore } from "@/stores/localPlayerStore";
 import {
   COLYSEUS_CONFIG,
@@ -10,6 +10,9 @@ import {
   type MoveData,
   useColyseusRoom,
 } from "@/utils/colyseus";
+
+// Throttle interval for position updates (milliseconds)
+const UPDATE_THROTTLE_MS = 50; // 20 updates per second max
 
 /**
  * Multiplayer provider component that handles Colyseus connection
@@ -25,6 +28,7 @@ export const MultiplayerProvider = ({
   const position = useLocalPlayerStore((state) => state.position);
   const rotation = useLocalPlayerStore((state) => state.rotation);
   const animationState = useLocalPlayerStore((state) => state.animationState);
+  const lastUpdateTime = useRef<number>(0);
 
   // Connect to Colyseus on mount
   useEffect(() => {
@@ -50,9 +54,16 @@ export const MultiplayerProvider = ({
     }
   }, [room?.sessionId, setId]);
 
-  // Synchronize local player position/rotation to server
+  // Synchronize local player position/rotation to server (throttled)
   useEffect(() => {
     if (!room) return;
+
+    const now = Date.now();
+    if (now - lastUpdateTime.current < UPDATE_THROTTLE_MS) {
+      return;
+    }
+
+    lastUpdateTime.current = now;
 
     const moveData: MoveData = {
       position: { x: position.x, y: position.y, z: position.z },

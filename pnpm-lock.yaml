@@ -11,6 +11,9 @@ importers:
       '@colyseus/schema':
         specifier: 2.0.37
         version: 2.0.37
+      '@pixiv/three-vrm':
+        specifier: ^3.4.4
+        version: 3.4.4(three@0.180.0)
       '@react-three/drei':
         specifier: ^10.7.6
         version: 10.7.6(@react-three/fiber@9.4.0(@types/react@19.2.2)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(three@0.180.0))(@types/react@19.2.2)(@types/three@0.180.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(three@0.180.0)

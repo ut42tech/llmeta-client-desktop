@@ -10,15 +10,18 @@
     "format": "biome format --write"
   },
   "dependencies": {
+    "@colyseus/schema": "2.0.37",
     "@react-three/drei": "^10.7.6",
     "@react-three/fiber": "^9.4.0",
     "@react-three/postprocessing": "^3.0.4",
     "@react-three/viverse": "^0.1.20",
+    "colyseus.js": "^0.16.22",
     "leva": "^0.10.1",
     "next": "16.0.1",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "three": "^0.180.0",
+    "use-colyseus": "^0.0.7",
     "zustand": "^5.0.8"
   },
   "devDependencies": {

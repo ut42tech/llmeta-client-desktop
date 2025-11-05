@@ -7,10 +7,13 @@ import { BvhPhysicsWorld } from "@react-three/viverse";
 import { useControls } from "leva";
 import { Suspense } from "react";
 import { Scene } from "@/components/Scene";
+import { useColyseusLifecycle } from "@/hooks/useColyseusLifecycle";
 
 export default function Home() {
   // debug
   const { stats } = useControls({ stats: true });
+
+  useColyseusLifecycle();
 
   return (
     <>

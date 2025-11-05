@@ -7,16 +7,16 @@ import { useLocalPlayerStore } from "@/stores/localPlayerStore";
  */
 export const DebugPanel = () => {
   // Local Player State
+  const sessionId = useLocalPlayerStore((state) => state.sessionId);
   const position = useLocalPlayerStore((state) => state.position);
   const rotation = useLocalPlayerStore((state) => state.rotation);
-  const id = useLocalPlayerStore((state) => state.id);
   const username = useLocalPlayerStore((state) => state.username);
   const animationState = useLocalPlayerStore((state) => state.animationState);
 
   // Levaコントロールとset関数を取得
   const [, setPlayerControls] = useControls("Local Player", () => ({
-    "Player ID": {
-      value: id || "Not set",
+    "Session ID": {
+      value: sessionId,
       disabled: true,
     },
     Username: {
@@ -56,7 +56,6 @@ export const DebugPanel = () => {
   // 状態が変わったらLevaの値を更新
   useEffect(() => {
     setPlayerControls({
-      "Player ID": id || "Not set",
       Username: username,
       "Position X": position.x,
       "Position Y": position.y,
@@ -66,7 +65,7 @@ export const DebugPanel = () => {
       "Rotation Z": rotation.z,
       Animation: animationState,
     });
-  }, [position, rotation, id, username, animationState, setPlayerControls]);
+  }, [position, rotation, username, animationState, setPlayerControls]);
 
   return null; // UIは描画しない（Levaパネルのみ）
 };

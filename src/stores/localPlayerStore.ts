@@ -1,5 +1,7 @@
+import type { Room } from "colyseus.js";
 import { type AnimationAction, Euler, Vector3 } from "three";
 import { create } from "zustand";
+import { MessageType, type MoveData, type MyRoomState } from "@/utils/colyseus";
 
 const INITIAL_PLAYER_POSITION = new Vector3(0, 0, 0);
 const INITIAL_PLAYER_ROTATION = new Euler(0, 0, 0);
@@ -15,6 +17,28 @@ const roundToDecimals = (value: number, decimals = 2): number => {
   return Math.round(value * multiplier) / multiplier;
 };
 
+/**
+ * Vector3をプレーンオブジェクトに変換
+ */
+function toPlainVec3(v: Vector3 | Euler): { x: number; y: number; z: number } {
+  return { x: v.x, y: v.y, z: v.z };
+}
+
+/**
+ * Vector3とEulerから移動データを構築（デスクトップ用）
+ */
+export function createMoveData(
+  position: Vector3,
+  rotation: Euler,
+  animation: AnimationName,
+): MoveData {
+  return {
+    position: toPlainVec3(position),
+    rotation: { x: rotation.x, y: rotation.y, z: 0 },
+    animation,
+  };
+}
+
 export type AnimationName =
   | "walk"
   | "run"
@@ -25,41 +49,50 @@ export type AnimationName =
   | "jumpForward";
 
 type LocalPlayerState = {
+  sessionId: string;
+  // プレイヤー情報
+  username: string;
+
   // 位置・回転
   position: Vector3;
   rotation: Euler;
-
-  // プレイヤー情報
-  id: string | null;
-  username: string;
 
   // 状態
   animationState: AnimationName;
 };
 
 type LocalPlayerActions = {
+  setSessionId: (sessionId: string) => void;
+  setUsername: (username: string) => void;
   setPosition: (position: Vector3) => void;
   setRotation: (rotation: Euler) => void;
-  setId: (id: string) => void;
-  setUsername: (username: string) => void;
   setAnimation: (state: AnimationName) => void;
   setAction: (actions?: Record<string, AnimationAction | undefined>) => void;
+  sendMovement: (room: Room<MyRoomState>) => void;
   reset: () => void;
 };
 
 type LocalPlayerStore = LocalPlayerState & LocalPlayerActions;
 
 const initialState: LocalPlayerState = {
+  sessionId: "",
+  username: "Player",
   position: INITIAL_PLAYER_POSITION.clone(),
   rotation: INITIAL_PLAYER_ROTATION.clone(),
-  id: null,
-  username: "Player",
   animationState: "idle",
 };
 
 export const useLocalPlayerStore = create<LocalPlayerStore>((set) => ({
   // State
   ...initialState,
+
+  setSessionId: (sessionId: string) => {
+    set({ sessionId });
+  },
+
+  setUsername: (username: string) => {
+    set({ username });
+  },
 
   // Actions
   setPosition: (position: Vector3) => {
@@ -86,14 +119,6 @@ export const useLocalPlayerStore = create<LocalPlayerStore>((set) => ({
     set({ rotation: normalizedRotation });
   },
 
-  setId: (id: string) => {
-    set({ id });
-  },
-
-  setUsername: (username: string) => {
-    set({ username });
-  },
-
   setAnimation: (animationState: AnimationName) => {
     set({ animationState });
   },
@@ -106,6 +131,15 @@ export const useLocalPlayerStore = create<LocalPlayerStore>((set) => ({
         )?.[0] as AnimationName | undefined)
       : undefined;
     set({ animationState: activeAnimationName ?? "idle" });
+  },
+
+  sendMovement: (room: Room<MyRoomState>) => {
+    const moveData = createMoveData(
+      useLocalPlayerStore.getState().position,
+      useLocalPlayerStore.getState().rotation,
+      useLocalPlayerStore.getState().animationState,
+    );
+    room.send(MessageType.MOVE, moveData);
   },
 
   reset: () => {

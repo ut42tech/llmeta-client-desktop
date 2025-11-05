@@ -4,13 +4,16 @@ import {
   SimpleCharacter,
   type SimpleCharacterImpl,
 } from "@react-three/viverse";
+import type { Room } from "colyseus.js";
 import { useControls } from "leva";
 import { Suspense, useEffect, useRef } from "react";
 import { type DirectionalLight, Euler, Vector3 } from "three";
 import { DebugPanel } from "@/components/DebugPanel";
 import { InfiniteWorld } from "@/components/InfiniteWorld";
+import { RemotePlayers } from "@/components/RemotePlayers";
 import { useLocalPlayerStore } from "@/stores/localPlayerStore";
 import { useWorldStore } from "@/stores/worldStore";
+import { useColyseusRoom } from "@/utils/colyseus";
 
 const LIGHT_OFFSET = new Vector3(2, 5, 2);
 const tmpVec = new Vector3();
@@ -19,9 +22,13 @@ export const Scene = () => {
   // debug
   const { softShadows } = useControls({ softShadows: true });
 
+  const room = useColyseusRoom();
+
+  const setSessionId = useLocalPlayerStore((state) => state.setSessionId);
   const setPosition = useLocalPlayerStore((state) => state.setPosition);
   const setRotation = useLocalPlayerStore((state) => state.setRotation);
   const setAction = useLocalPlayerStore((state) => state.setAction);
+  const sendMovement = useLocalPlayerStore((state) => state.sendMovement);
 
   const updateCurrentGridCell = useWorldStore(
     (state) => state.updateCurrentGridCell,
@@ -29,6 +36,8 @@ export const Scene = () => {
   const characterRef = useRef<SimpleCharacterImpl>(null);
   const directionalLight = useRef<DirectionalLight | null>(null);
   const { scene } = useThree();
+
+  setSessionId(room?.sessionId || "");
 
   useEffect(() => {
     const light = directionalLight.current;
@@ -62,6 +71,9 @@ export const Scene = () => {
     // Determine current animation state based on active action
     setAction(character.actions);
 
+    // Send movement update to server
+    sendMovement((room as unknown as Room) || undefined);
+
     updateCurrentGridCell(character.position);
 
     // Keep the light aligned with the character so shadows stay accurate
@@ -85,8 +97,14 @@ export const Scene = () => {
       />
       <ambientLight intensity={1} />
 
+      {/* Local Player */}
       <Suspense>
         <SimpleCharacter ref={characterRef} />
+      </Suspense>
+
+      {/* Remote Players */}
+      <Suspense>
+        <RemotePlayers />
       </Suspense>
 
       <Suspense>

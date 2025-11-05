@@ -14,17 +14,18 @@ type RemotePlayerProps = {
 export const RemotePlayer = ({ player }: RemotePlayerProps) => {
   const groupRef = useRef<Group>(null);
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     if (!groupRef.current) return;
 
-    // スムーズに位置と回転を補間
-    groupRef.current.position.lerp(player.position, 0.1);
+    const lerpFactor = 1 - Math.exp(-2 * delta);
+
+    groupRef.current.position.lerp(player.position, lerpFactor);
     groupRef.current.rotation.x +=
-      (player.rotation.x - groupRef.current.rotation.x) * 0.1;
+      (player.rotation.x - groupRef.current.rotation.x) * lerpFactor;
     groupRef.current.rotation.y +=
-      (player.rotation.y - groupRef.current.rotation.y) * 0.1;
+      (player.rotation.y - groupRef.current.rotation.y) * lerpFactor;
     groupRef.current.rotation.z +=
-      (player.rotation.z - groupRef.current.rotation.z) * 0.1;
+      (player.rotation.z - groupRef.current.rotation.z) * lerpFactor;
   });
 
   return (

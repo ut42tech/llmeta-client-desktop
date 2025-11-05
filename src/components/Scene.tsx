@@ -10,6 +10,7 @@ import { Suspense, useEffect, useRef } from "react";
 import { type DirectionalLight, Euler, Vector3 } from "three";
 import { DebugPanel } from "@/components/DebugPanel";
 import { InfiniteWorld } from "@/components/InfiniteWorld";
+import { RemotePlayers } from "@/components/RemotePlayers";
 import { useLocalPlayerStore } from "@/stores/localPlayerStore";
 import { useWorldStore } from "@/stores/worldStore";
 import { useColyseusRoom } from "@/utils/colyseus";
@@ -102,7 +103,9 @@ export const Scene = () => {
       </Suspense>
 
       {/* Remote Players */}
-      {/* TODO: <RemotePlayers /> */}
+      <Suspense>
+        <RemotePlayers />
+      </Suspense>
 
       <Suspense>
         <InfiniteWorld />

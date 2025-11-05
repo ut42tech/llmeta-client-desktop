@@ -1,7 +1,7 @@
 import type { Room } from "colyseus.js";
 import { type AnimationAction, Euler, Vector3 } from "three";
 import { create } from "zustand";
-import { MessageType, type MoveData } from "@/utils/colyseus";
+import { MessageType, type MoveData, type MyRoomState } from "@/utils/colyseus";
 
 const INITIAL_PLAYER_POSITION = new Vector3(0, 0, 0);
 const INITIAL_PLAYER_ROTATION = new Euler(0, 0, 0);
@@ -49,6 +49,7 @@ export type AnimationName =
   | "jumpForward";
 
 type LocalPlayerState = {
+  sessionId: string;
   // プレイヤー情報
   username: string;
 
@@ -61,18 +62,20 @@ type LocalPlayerState = {
 };
 
 type LocalPlayerActions = {
+  setSessionId: (sessionId: string) => void;
   setUsername: (username: string) => void;
   setPosition: (position: Vector3) => void;
   setRotation: (rotation: Euler) => void;
   setAnimation: (state: AnimationName) => void;
   setAction: (actions?: Record<string, AnimationAction | undefined>) => void;
-  sendMovement: (room: Room) => void;
+  sendMovement: (room: Room<MyRoomState>) => void;
   reset: () => void;
 };
 
 type LocalPlayerStore = LocalPlayerState & LocalPlayerActions;
 
 const initialState: LocalPlayerState = {
+  sessionId: "",
   username: "Player",
   position: INITIAL_PLAYER_POSITION.clone(),
   rotation: INITIAL_PLAYER_ROTATION.clone(),
@@ -82,6 +85,10 @@ const initialState: LocalPlayerState = {
 export const useLocalPlayerStore = create<LocalPlayerStore>((set) => ({
   // State
   ...initialState,
+
+  setSessionId: (sessionId: string) => {
+    set({ sessionId });
+  },
 
   setUsername: (username: string) => {
     set({ username });
@@ -126,7 +133,7 @@ export const useLocalPlayerStore = create<LocalPlayerStore>((set) => ({
     set({ animationState: activeAnimationName ?? "idle" });
   },
 
-  sendMovement: (room: Room) => {
+  sendMovement: (room: Room<MyRoomState>) => {
     const moveData = createMoveData(
       useLocalPlayerStore.getState().position,
       useLocalPlayerStore.getState().rotation,

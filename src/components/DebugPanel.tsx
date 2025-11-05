@@ -7,6 +7,7 @@ import { useLocalPlayerStore } from "@/stores/localPlayerStore";
  */
 export const DebugPanel = () => {
   // Local Player State
+  const sessionId = useLocalPlayerStore((state) => state.sessionId);
   const position = useLocalPlayerStore((state) => state.position);
   const rotation = useLocalPlayerStore((state) => state.rotation);
   const username = useLocalPlayerStore((state) => state.username);
@@ -14,6 +15,10 @@ export const DebugPanel = () => {
 
   // Levaコントロールとset関数を取得
   const [, setPlayerControls] = useControls("Local Player", () => ({
+    "Session ID": {
+      value: sessionId,
+      disabled: true,
+    },
     Username: {
       value: username,
       disabled: true,

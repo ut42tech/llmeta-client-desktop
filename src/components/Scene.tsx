@@ -4,6 +4,7 @@ import {
   SimpleCharacter,
   type SimpleCharacterImpl,
 } from "@react-three/viverse";
+import type { Room } from "colyseus.js";
 import { useControls } from "leva";
 import { Suspense, useEffect, useRef } from "react";
 import { type DirectionalLight, Euler, Vector3 } from "three";
@@ -11,6 +12,7 @@ import { DebugPanel } from "@/components/DebugPanel";
 import { InfiniteWorld } from "@/components/InfiniteWorld";
 import { useLocalPlayerStore } from "@/stores/localPlayerStore";
 import { useWorldStore } from "@/stores/worldStore";
+import { useColyseusRoom } from "@/utils/colyseus";
 
 const LIGHT_OFFSET = new Vector3(2, 5, 2);
 const tmpVec = new Vector3();
@@ -19,9 +21,12 @@ export const Scene = () => {
   // debug
   const { softShadows } = useControls({ softShadows: true });
 
+  const room = useColyseusRoom();
+
   const setPosition = useLocalPlayerStore((state) => state.setPosition);
   const setRotation = useLocalPlayerStore((state) => state.setRotation);
   const setAction = useLocalPlayerStore((state) => state.setAction);
+  const sendMovement = useLocalPlayerStore((state) => state.sendMovement);
 
   const updateCurrentGridCell = useWorldStore(
     (state) => state.updateCurrentGridCell,
@@ -61,6 +66,9 @@ export const Scene = () => {
 
     // Determine current animation state based on active action
     setAction(character.actions);
+
+    // Send movement update to server
+    sendMovement((room as unknown as Room) || undefined);
 
     updateCurrentGridCell(character.position);
 

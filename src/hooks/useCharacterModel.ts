@@ -37,20 +37,20 @@ export const useCharacterModel = (groupRef: React.RefObject<Group | null>) => {
       if (!group) return;
 
       try {
-        const { model, mixer, actions } = await initializeCharacter();
+        const { modelScene, mixer, actions } = await initializeCharacter();
 
         if (!mounted) return;
 
         currentMixer = mixer;
-        currentModelScene = model.scene;
+        currentModelScene = modelScene;
 
-        group.add(model.scene);
+        group.add(modelScene);
         actions.get(INITIAL_ANIMATION)?.play();
 
         setState({
           mixer,
           actions,
-          modelScene: model.scene,
+          modelScene,
           isLoaded: true,
         });
       } catch (error) {

@@ -5,6 +5,7 @@ import {
 } from "@pmndrs/viverse";
 import type { AnimationAction } from "three";
 import { AnimationMixer } from "three";
+import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
 import type { AnimationName } from "@/stores/localPlayerStore";
 
 export const ANIMATION_NAMES: AnimationName[] = [
@@ -67,16 +68,18 @@ export const loadAllAnimations = async (
  * キャラクターモデルと全アニメーションを初期化
  */
 export const initializeCharacter = async () => {
-  const model = await loadCharacterModel();
-  if (!model) {
+  const baseModel = await loadCharacterModel();
+  if (!baseModel) {
     throw new Error("Failed to load character model");
   }
 
-  const mixer = new AnimationMixer(model.scene);
-  const actions = await loadAllAnimations(model, mixer);
+  const modelScene = SkeletonUtils.clone(baseModel.scene);
+
+  const mixer = new AnimationMixer(modelScene);
+  const actions = await loadAllAnimations(baseModel, mixer);
 
   return {
-    model,
+    modelScene,
     mixer,
     actions,
   };

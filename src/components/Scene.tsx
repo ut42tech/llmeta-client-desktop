@@ -6,11 +6,12 @@ import {
 } from "@react-three/viverse";
 import type { Room } from "colyseus.js";
 import { useControls } from "leva";
-import { Suspense, useEffect, useRef } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { type DirectionalLight, Euler, Vector3 } from "three";
 import { DebugPanel } from "@/components/DebugPanel";
 import { InfiniteWorld } from "@/components/InfiniteWorld";
 import { RemotePlayers } from "@/components/RemotePlayers";
+import { useColyseusLifecycle } from "@/hooks/useColyseusLifecycle";
 import { useLocalPlayerStore } from "@/stores/localPlayerStore";
 import { useWorldStore } from "@/stores/worldStore";
 import { useColyseusRoom } from "@/utils/colyseus";
@@ -22,7 +23,10 @@ export const Scene = () => {
   // debug
   const { softShadows } = useControls({ softShadows: true });
 
+  useColyseusLifecycle();
+
   const room = useColyseusRoom();
+  const [isConnected, setIsConnected] = useState(false);
 
   const setSessionId = useLocalPlayerStore((state) => state.setSessionId);
   const setPosition = useLocalPlayerStore((state) => state.setPosition);
@@ -37,7 +41,13 @@ export const Scene = () => {
   const directionalLight = useRef<DirectionalLight | null>(null);
   const { scene } = useThree();
 
-  setSessionId(room?.sessionId || "");
+  useEffect(() => {
+    if (room?.sessionId) {
+      setSessionId(room.sessionId);
+      setIsConnected(true);
+      console.log("[Scene] Colyseus connected, session ID:", room.sessionId);
+    }
+  }, [room?.sessionId, setSessionId]);
 
   useEffect(() => {
     const light = directionalLight.current;
@@ -64,15 +74,17 @@ export const Scene = () => {
       character.position.copy(new Vector3());
     }
 
-    // Update player position and grid cell independently
+    // Update player position and grid cell independently (always update locally)
     setPosition(character.position);
     setRotation(character.model?.scene.rotation || new Euler());
 
     // Determine current animation state based on active action
     setAction(character.actions);
 
-    // Send movement update to server
-    sendMovement((room as unknown as Room) || undefined);
+    // Send movement update to server only if connected
+    if (isConnected && room) {
+      sendMovement((room as unknown as Room) || undefined);
+    }
 
     updateCurrentGridCell(character.position);
 

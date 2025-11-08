@@ -56,6 +56,7 @@ export const DebugPanel = () => {
   // 状態が変わったらLevaの値を更新
   useEffect(() => {
     setPlayerControls({
+      "Session ID": sessionId,
       Username: username,
       "Position X": position.x,
       "Position Y": position.y,
@@ -65,7 +66,14 @@ export const DebugPanel = () => {
       "Rotation Z": rotation.z,
       Animation: animationState,
     });
-  }, [position, rotation, username, animationState, setPlayerControls]);
+  }, [
+    sessionId,
+    position,
+    rotation,
+    username,
+    animationState,
+    setPlayerControls,
+  ]);
 
-  return null; // UIは描画しない（Levaパネルのみ）
+  return null; // UIは描画しない(Levaパネルのみ)
 };

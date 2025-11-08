@@ -3,73 +3,34 @@ import { Euler, Vector3 } from "three";
 import { RemotePlayer } from "@/components/RemotePlayer";
 import type { AnimationName } from "@/stores/localPlayerStore";
 import { useRemotePlayersStore } from "@/stores/remotePlayersStore";
-import {
-  type Player,
-  useColyseusRoom,
-  useColyseusState,
-} from "@/utils/colyseus";
+import { type Player, useColyseusState } from "@/utils/colyseus";
 
 /**
  * すべてのリモートプレイヤーを管理するコンポーネント
+ * Colyseusルームの状態変更を監視し、プレイヤー情報を更新
  */
 export const RemotePlayers = () => {
-  const room = useColyseusRoom();
   const state = useColyseusState();
-
-  const players = useRemotePlayersStore((store) => store.players);
   const addOrUpdatePlayer = useRemotePlayersStore(
-    (store) => store.addOrUpdatePlayer,
+    (state) => state.addOrUpdatePlayer,
   );
-  const removePlayer = useRemotePlayersStore((store) => store.removePlayer);
-  const clearAll = useRemotePlayersStore((store) => store.clearAll);
+  const removePlayer = useRemotePlayersStore((state) => state.removePlayer);
+  const players = useRemotePlayersStore((state) => state.players);
 
   useEffect(() => {
-    if (!room || !state) return;
-
-    // 初期化：既存のプレイヤーをすべて追加（自分以外）
-    state.players.forEach((player: Player, sessionId: string) => {
-      if (sessionId === room.sessionId) return; // 自分は除外
-
-      addOrUpdatePlayer(sessionId, {
-        sessionId,
-        username: player.username,
-        position: new Vector3(
-          player.position.x,
-          player.position.y,
-          player.position.z,
-        ),
-        rotation: new Euler(
-          player.rotation.x,
-          player.rotation.y,
-          player.rotation.z,
-        ),
-        animation: player.animation as AnimationName,
-      });
-    });
+    if (!state) return;
 
     // プレイヤーが追加されたとき
-    const onAdd = (player: Player, sessionId: string) => {
-      if (sessionId === room.sessionId) return; // 自分は除外
+    const unsubscribeAdd = state.players.onAdd(
+      (player: Player, key: string) => {
+        // playerの存在とposition/rotationの存在をチェック
+        if (!player || !player.position || !player.rotation) {
+          console.warn(`[RemotePlayers] Invalid player data on add: ${key}`);
+          return;
+        }
 
-      addOrUpdatePlayer(sessionId, {
-        sessionId,
-        username: player.username,
-        position: new Vector3(
-          player.position.x,
-          player.position.y,
-          player.position.z,
-        ),
-        rotation: new Euler(
-          player.rotation.x,
-          player.rotation.y,
-          player.rotation.z,
-        ),
-        animation: player.animation as AnimationName,
-      });
-
-      // プレイヤーの状態変更を監視
-      player.onChange(() => {
-        addOrUpdatePlayer(sessionId, {
+        addOrUpdatePlayer(key, {
+          sessionId: key,
           username: player.username,
           position: new Vector3(
             player.position.x,
@@ -83,29 +44,51 @@ export const RemotePlayers = () => {
           ),
           animation: player.animation as AnimationName,
         });
-      });
-    };
+      },
+    );
 
     // プレイヤーが削除されたとき
-    const onRemove = (_player: Player, sessionId: string) => {
-      removePlayer(sessionId);
-    };
+    const unsubscribeRemove = state.players.onRemove(
+      (_player: Player, key: string) => {
+        removePlayer(key);
+      },
+    );
 
-    // リスナー登録
-    state.players.onAdd(onAdd);
-    state.players.onRemove(onRemove);
+    // プレイヤー情報が変更されたとき
+    const unsubscribeChange = state.players.onChange(
+      (player: Player, key: string) => {
+        // playerがnullの場合はスキップ（削除時など）
+        if (!player || !player.position || !player.rotation) {
+          return;
+        }
 
-    // クリーンアップ
+        addOrUpdatePlayer(key, {
+          position: new Vector3(
+            player.position.x,
+            player.position.y,
+            player.position.z,
+          ),
+          rotation: new Euler(
+            player.rotation.x,
+            player.rotation.y,
+            player.rotation.z,
+          ),
+          animation: player.animation as AnimationName,
+        });
+      },
+    );
+
     return () => {
-      clearAll();
+      unsubscribeAdd();
+      unsubscribeRemove();
+      unsubscribeChange();
     };
-  }, [room, state, addOrUpdatePlayer, removePlayer, clearAll]);
+  }, [state, addOrUpdatePlayer, removePlayer]);
 
-  // リモートプレイヤーをレンダリング
   return (
     <>
-      {Array.from(players.values()).map((player) => (
-        <RemotePlayer key={player.sessionId} player={player} />
+      {Array.from(players.values()).map((playerData) => (
+        <RemotePlayer key={playerData.sessionId} player={playerData} />
       ))}
     </>
   );

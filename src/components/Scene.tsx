@@ -6,19 +6,28 @@ import {
 } from "@react-three/viverse";
 import type { Room } from "colyseus.js";
 import { useControls } from "leva";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { type DirectionalLight, Euler, Vector3 } from "three";
 import { DebugPanel } from "@/components/DebugPanel";
 import { InfiniteWorld } from "@/components/InfiniteWorld";
 import { RemotePlayers } from "@/components/RemotePlayers";
+import { LIGHTING, PHYSICS } from "@/constants";
 import { useColyseusLifecycle } from "@/hooks/useColyseusLifecycle";
 import { useLocalPlayerStore } from "@/stores/localPlayerStore";
 import { useWorldStore } from "@/stores/worldStore";
 import { useColyseusRoom } from "@/utils/colyseus";
 
-const LIGHT_OFFSET = new Vector3(2, 5, 2);
+const LIGHT_OFFSET = new Vector3(
+  LIGHTING.LIGHT_OFFSET.x,
+  LIGHTING.LIGHT_OFFSET.y,
+  LIGHTING.LIGHT_OFFSET.z,
+);
 const tmpVec = new Vector3();
 
+/**
+ * メインシーンコンポーネント
+ * ローカルプレイヤー、リモートプレイヤー、ワールドを管理
+ */
 export const Scene = () => {
   // debug
   const { softShadows } = useControls({ softShadows: true });
@@ -33,14 +42,15 @@ export const Scene = () => {
   const setRotation = useLocalPlayerStore((state) => state.setRotation);
   const setAction = useLocalPlayerStore((state) => state.setAction);
   const sendMovement = useLocalPlayerStore((state) => state.sendMovement);
-
   const updateCurrentGridCell = useWorldStore(
     (state) => state.updateCurrentGridCell,
   );
+
   const characterRef = useRef<SimpleCharacterImpl>(null);
   const directionalLight = useRef<DirectionalLight | null>(null);
   const { scene } = useThree();
 
+  // セッション接続時の処理
   useEffect(() => {
     if (room?.sessionId) {
       setSessionId(room.sessionId);
@@ -49,6 +59,7 @@ export const Scene = () => {
     }
   }, [room?.sessionId, setSessionId]);
 
+  // ライトターゲットの追加・削除
   useEffect(() => {
     const light = directionalLight.current;
     if (!light) {
@@ -61,6 +72,7 @@ export const Scene = () => {
     };
   }, [scene]);
 
+  // メインループ（最適化済み）
   useFrame(() => {
     const character = characterRef.current;
     const light = directionalLight.current;
@@ -69,30 +81,36 @@ export const Scene = () => {
       return;
     }
 
-    // Reset position if fallen below threshold
-    if (character.position.y < -10) {
+    // 落下時のリセット
+    if (character.position.y < PHYSICS.RESET_Y_THRESHOLD) {
       character.position.copy(new Vector3());
     }
 
-    // Update player position and grid cell independently (always update locally)
+    // プレイヤー情報の更新
     setPosition(character.position);
     setRotation(character.model?.scene.rotation || new Euler());
-
-    // Determine current animation state based on active action
     setAction(character.actions);
 
-    // Send movement update to server only if connected
+    // サーバーへの移動情報送信（スロットリング済み）
     if (isConnected && room) {
       sendMovement((room as unknown as Room) || undefined);
     }
 
+    // グリッドセル更新
     updateCurrentGridCell(character.position);
 
-    // Keep the light aligned with the character so shadows stay accurate
+    // ライト位置の更新（影がキャラクターに追従）
     light.target.position.copy(character.position);
     tmpVec.copy(light.target.position).add(LIGHT_OFFSET);
     light.position.copy(tmpVec);
   });
+
+  // ライト設定
+  const directionalLightIntensity = useMemo(
+    () => LIGHTING.DIRECTIONAL_INTENSITY,
+    [],
+  );
+  const ambientLightIntensity = useMemo(() => LIGHTING.AMBIENT_INTENSITY, []);
 
   return (
     <>
@@ -102,24 +120,24 @@ export const Scene = () => {
 
       <Sky />
       <directionalLight
-        intensity={1.2}
+        intensity={directionalLightIntensity}
         position={[-10, 10, -10]}
         castShadow
         ref={directionalLight}
       />
-      <ambientLight intensity={1} />
+      <ambientLight intensity={ambientLightIntensity} />
 
       {/* Local Player */}
-      <Suspense>
+      <Suspense fallback={null}>
         <SimpleCharacter ref={characterRef} />
       </Suspense>
 
       {/* Remote Players */}
-      <Suspense>
+      <Suspense fallback={null}>
         <RemotePlayers />
       </Suspense>
 
-      <Suspense>
+      <Suspense fallback={null}>
         <InfiniteWorld />
       </Suspense>
     </>

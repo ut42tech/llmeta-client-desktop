@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { AnimationAction, AnimationMixer, Group, Object3D } from "three";
 import {
   type AnimationName,
@@ -18,6 +18,8 @@ export const useRemoteCharacter = (groupRef: React.RefObject<Group | null>) => {
     actions: new Map(),
     isLoaded: false,
   });
+
+  const mixerRef = useRef<AnimationMixer | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -40,6 +42,7 @@ export const useRemoteCharacter = (groupRef: React.RefObject<Group | null>) => {
         group.add(modelScene);
         actions.get(DEFAULT_ANIMATION)?.play();
 
+        mixerRef.current = mixer;
         setState({ mixer, actions, isLoaded: true });
       } catch (error) {
         console.error("Failed to setup remote character:", error);
@@ -50,12 +53,12 @@ export const useRemoteCharacter = (groupRef: React.RefObject<Group | null>) => {
 
     return () => {
       mounted = false;
-      state.mixer?.stopAllAction();
+      mixerRef.current?.stopAllAction();
+      mixerRef.current = null;
       if (modelScene) {
         groupRef.current?.remove(modelScene);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupRef]);
 
   return state;

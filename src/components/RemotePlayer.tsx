@@ -18,7 +18,12 @@ const RemotePlayerComponent = ({ player }: RemotePlayerProps) => {
   const groupRef = useRef<Group>(null);
   const { mixer, actions, isLoaded } = useRemoteCharacter(groupRef);
 
-  useRemoteCharacterAnimation(player.animation, mixer, actions, isLoaded);
+  useRemoteCharacterAnimation({
+    animation: player.animation,
+    mixer,
+    actions,
+    isModelLoaded: isLoaded,
+  });
 
   useFrame((_, delta) => {
     const group = groupRef.current;

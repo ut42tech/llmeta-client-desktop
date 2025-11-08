@@ -11,7 +11,7 @@ type UseAnimationControllerParams = {
 
 const FADE_DURATION = 0.2;
 
-export const useAnimationController = ({
+export const useRemoteCharacterAnimation = ({
   animation,
   mixer,
   actions,

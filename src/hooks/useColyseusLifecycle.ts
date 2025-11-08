@@ -9,6 +9,7 @@ import {
 
 /**
  * Colyseus接続ライフサイクル管理フック
+ * コンポーネントのマウント時に接続、アンマウント時に切断を自動管理
  *
  * @param roomName - 接続するルーム名（デフォルト: "my_room"）
  */
@@ -17,17 +18,24 @@ export function useColyseusLifecycle(
 ) {
   useEffect(() => {
     let mounted = true;
+    let connecting = false;
 
     const connect = async () => {
+      // 二重接続を防ぐ
+      if (connecting) return;
+      connecting = true;
+
       try {
         await connectToColyseus(roomName);
         if (mounted) {
-          console.log(`[Colyseus] Connected to room: ${roomName}`);
+          console.log(`[Colyseus] Successfully connected to room: ${roomName}`);
         }
       } catch (error) {
         if (mounted) {
-          console.error("[Colyseus] Failed to connect:", error);
+          console.error("[Colyseus] Connection failed:", error);
         }
+      } finally {
+        connecting = false;
       }
     };
 
@@ -36,7 +44,7 @@ export function useColyseusLifecycle(
     return () => {
       mounted = false;
       disconnectFromColyseus();
-      console.log("[Colyseus] Disconnected");
+      console.log("[Colyseus] Disconnected from room");
     };
   }, [roomName]);
 }

@@ -1,0 +1,22 @@
+export const GRID_CELL_SIZE = 10;
+export const HALF_GRID_CELL_SIZE = GRID_CELL_SIZE / 2;
+
+export const PERFORMANCE = {
+  MOVEMENT_UPDATE_THROTTLE: 50, // ms
+  POSITION_LERP_FACTOR: 0.2,
+  ROTATION_LERP_FACTOR: 0.2,
+};
+
+export const PRECISION = {
+  DECIMAL_PLACES: 2,
+};
+
+export const PHYSICS = {
+  RESET_Y_THRESHOLD: -10,
+};
+
+export const LIGHTING = {
+  LIGHT_OFFSET: { x: 2, y: 5, z: 2 },
+  DIRECTIONAL_INTENSITY: 1.2,
+  AMBIENT_INTENSITY: 1,
+};

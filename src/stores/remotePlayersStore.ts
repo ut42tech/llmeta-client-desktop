@@ -1,6 +1,7 @@
 import { Euler, Vector3 } from "three";
 import { create } from "zustand";
 import type { AnimationName } from "@/stores/localPlayerStore";
+import { DEFAULT_ANIMATION } from "@/stores/localPlayerStore";
 
 /**
  * リモートプレイヤーの状態
@@ -32,6 +33,10 @@ const initialState: RemotePlayersState = {
   players: new Map(),
 };
 
+/**
+ * リモートプレイヤー状態管理ストア
+ * マルチプレイヤー環境での他プレイヤー情報を管理
+ */
 export const useRemotePlayersStore = create<RemotePlayersStore>((set) => ({
   // State
   ...initialState,
@@ -42,13 +47,14 @@ export const useRemotePlayersStore = create<RemotePlayersStore>((set) => ({
       const newPlayers = new Map(state.players);
       const existingPlayer = newPlayers.get(sessionId);
 
-      // Create or update player data
+      // プレイヤーデータの作成または更新
       const updatedPlayer: RemotePlayerData = {
         sessionId,
         username: data.username ?? existingPlayer?.username ?? "Player",
         position: data.position ?? existingPlayer?.position ?? new Vector3(),
         rotation: data.rotation ?? existingPlayer?.rotation ?? new Euler(),
-        animation: data.animation ?? existingPlayer?.animation ?? "idle",
+        animation:
+          data.animation ?? existingPlayer?.animation ?? DEFAULT_ANIMATION,
       };
 
       newPlayers.set(sessionId, updatedPlayer);

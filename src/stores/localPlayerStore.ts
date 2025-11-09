@@ -26,8 +26,7 @@ export function createMoveData(
 ): MoveData {
   return {
     position: toPlainVec3(position),
-    // 送信するのは Yaw（y）のみ。x/z は 0 固定にして受信側で正しく適用する
-    rotation: { x: 0, y: rotation.y, z: 0 },
+    rotation: { x: rotation.x, y: rotation.y, z: 0 },
     animation,
   };
 }

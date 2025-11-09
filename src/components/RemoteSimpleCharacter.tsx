@@ -34,7 +34,12 @@ export const RemoteSimpleCharacter = ({
     const c = ref.current;
     if (!c) return;
     c.position.copy(player.position);
-    c.model?.scene.rotation.copy(player.rotation);
+    // 受信したのは yaw のみを使用して初期回転に適用
+    const scene = c.model?.scene;
+    if (scene) {
+      tmpEuler.set(0, player.rotation.y, 0);
+      scene.quaternion.setFromEuler(tmpEuler);
+    }
     if (c.actions) {
       const record = c.actions as Record<AnimationName, AnimationAction>;
       const map = new Map<AnimationName, AnimationAction>(
@@ -61,7 +66,8 @@ export const RemoteSimpleCharacter = ({
     const modelScene = c.model?.scene;
     if (modelScene) {
       tmpQuatFrom.copy(modelScene.quaternion);
-      tmpEuler.copy(player.rotation);
+      // yaw のみ適用
+      tmpEuler.set(0, player.rotation.y, 0);
       tmpQuatTo.setFromEuler(tmpEuler);
       tmpQuatFrom.slerp(tmpQuatTo, PERFORMANCE.ROTATION_LERP_FACTOR);
       modelScene.quaternion.copy(tmpQuatFrom);

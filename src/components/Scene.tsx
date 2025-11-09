@@ -88,7 +88,10 @@ export const Scene = () => {
 
     // プレイヤー情報の更新
     setPosition(character.position);
-    setRotation(character.model?.scene.rotation || new Euler());
+    // Yaw（y）のみ同期対象にする
+    const currentRot = character.model?.scene.rotation || new Euler();
+    const yawOnly = new Euler(0, currentRot.y, 0);
+    setRotation(yawOnly);
     setAction(character.actions);
 
     // サーバーへの移動情報送信（スロットリング済み）

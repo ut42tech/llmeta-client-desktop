@@ -52,8 +52,6 @@ const GridCell = memo(
     prev.cellY === next.cellY,
 );
 
-GridCell.displayName = "GridCell";
-
 type InfiniteWorldProps = {
   [key: string]: unknown;
 };
@@ -120,5 +118,3 @@ export const InfiniteWorld = memo(({ ...props }: InfiniteWorldProps) => {
     </group>
   );
 });
-
-InfiniteWorld.displayName = "InfiniteWorld";

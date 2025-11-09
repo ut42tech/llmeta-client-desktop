@@ -133,9 +133,10 @@ export const Scene = () => {
       </Suspense>
 
       {/* Remote Players */}
-      <Suspense fallback={null}>
+      {/* TODO: Re-enable when RemoteSimpleCharacter is ready */}
+      {/* <Suspense fallback={null}>
         <RemotePlayers />
-      </Suspense>
+      </Suspense> */}
 
       <Suspense fallback={null}>
         <InfiniteWorld />

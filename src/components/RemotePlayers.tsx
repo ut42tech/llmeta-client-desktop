@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Euler, Vector3 } from "three";
-import { RemotePlayer } from "@/components/RemotePlayer";
+import { RemoteSimpleCharacter } from "@/components/RemoteSimpleCharacter";
 import type { AnimationName } from "@/stores/localPlayerStore";
 import { useRemotePlayersStore } from "@/stores/remotePlayersStore";
 import { type Player, useColyseusState } from "@/utils/colyseus";
@@ -88,7 +88,7 @@ export const RemotePlayers = () => {
   return (
     <>
       {Array.from(players.values()).map((playerData) => (
-        <RemotePlayer key={playerData.sessionId} player={playerData} />
+        <RemoteSimpleCharacter key={playerData.sessionId} player={playerData} />
       ))}
     </>
   );

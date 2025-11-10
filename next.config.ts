@@ -10,6 +10,7 @@ const nextConfig: NextConfig = {
       "three",
     ],
   },
+  output: "export",
 };
 
 export default nextConfig;

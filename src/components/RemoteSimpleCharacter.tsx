@@ -2,19 +2,19 @@
 import { useFrame } from "@react-three/fiber";
 import { Suspense, useEffect, useRef } from "react";
 import type { Group } from "three";
-import { Euler, Quaternion } from "three";
-import { PERFORMANCE } from "@/constants";
 import { useGltfCharacterAssets } from "@/hooks/useGltfCharacterAssets";
 import { useRemoteCharacterAnimation } from "@/hooks/useRemoteCharacterAnimation";
+import {
+  usePositionBuffer,
+  useRotationBuffer,
+} from "@/hooks/useSnapshotBuffer";
 import type { RemotePlayerData } from "@/stores/remotePlayersStore";
 
 export type RemoteSimpleCharacterProps = {
   player: RemotePlayerData;
 };
 
-const tmpQuatFrom = new Quaternion();
-const tmpQuatTo = new Quaternion();
-const tmpEuler = new Euler();
+// smoothing handled via hooks
 
 export const RemoteSimpleCharacter = ({
   player,
@@ -31,23 +31,17 @@ export const RemoteSimpleCharacter = ({
     isModelLoaded: isLoaded,
   });
 
+  // 位置・回転の補間（スナップショット補完）
+  const smoothPosition = usePositionBuffer(player.position);
+  const smoothRotationQuat = useRotationBuffer(player.rotation);
+
   // 位置/回転 & mixer の更新
   useFrame((_, delta) => {
     const g = group.current;
     if (!g) return;
-    // 位置補間
-    g.position.lerp(player.position, PERFORMANCE.POSITION_LERP_FACTOR);
-    if (model) {
-      tmpQuatFrom.copy(model.quaternion);
-      tmpEuler.set(
-        player.rotation.x,
-        player.rotation.y + Math.PI,
-        player.rotation.z,
-      );
-      tmpQuatTo.setFromEuler(tmpEuler);
-      tmpQuatFrom.slerp(tmpQuatTo, PERFORMANCE.ROTATION_LERP_FACTOR);
-      model.quaternion.copy(tmpQuatFrom);
-    }
+    // バッファ済みのスムーズな位置/回転を適用
+    g.position.copy(smoothPosition);
+    if (model) model.quaternion.copy(smoothRotationQuat);
     // アニメーション時間更新
     mixer?.update(delta);
   });

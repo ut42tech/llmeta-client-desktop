@@ -21,3 +21,13 @@ export const LIGHTING = {
   DIRECTIONAL_INTENSITY: 1.2,
   AMBIENT_INTENSITY: 1,
 };
+
+export { url as idleUrl } from "@pmndrs/viverse/dist/assets/idle.js";
+export { url as jumpDownUrl } from "@pmndrs/viverse/dist/assets/jump-down.js";
+export { url as jumpForwardUrl } from "@pmndrs/viverse/dist/assets/jump-forward.js";
+export { url as jumpLoopUrl } from "@pmndrs/viverse/dist/assets/jump-loop.js";
+export { url as jumpUpUrl } from "@pmndrs/viverse/dist/assets/jump-up.js";
+// Character model and animation asset URLs (re-exported from @pmndrs/viverse)
+export { url as mannequinUrl } from "@pmndrs/viverse/dist/assets/mannequin.js";
+export { url as runUrl } from "@pmndrs/viverse/dist/assets/run.js";
+export { url as walkUrl } from "@pmndrs/viverse/dist/assets/walk.js";

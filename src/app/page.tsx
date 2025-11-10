@@ -2,10 +2,15 @@
 
 import { Loader, Stats } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import { BvhPhysicsWorld } from "@react-three/viverse";
 import { useControls } from "leva";
+import dynamic from "next/dynamic";
 import { Suspense } from "react";
 import { Scene } from "@/components/Scene";
+
+const Viverse = dynamic(
+  () => import("@react-three/viverse").then((mod) => mod.Viverse),
+  { ssr: false },
+);
 
 export default function Home() {
   // debug
@@ -15,7 +20,7 @@ export default function Home() {
     <>
       <Loader />
       {stats && <Stats />}
-      <BvhPhysicsWorld>
+      <Viverse clientId={process.env.NEXT_PUBLIC_VIVERSE_APP_ID || undefined}>
         <Canvas
           className="fixed! w-screen! h-screen! touch-none"
           shadows
@@ -31,7 +36,7 @@ export default function Home() {
             <Scene />
           </Suspense>
         </Canvas>
-      </BvhPhysicsWorld>
+      </Viverse>
     </>
   );
 }

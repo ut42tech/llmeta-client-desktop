@@ -20,6 +20,10 @@ export default function Home() {
     <>
       <Loader />
       {stats && <Stats />}
+
+      {/* TODO: implement actual overlay UI */}
+      {/* <OverlayUI className="fixed! w-screen! h-screen! pointer-events-none" /> */}
+
       <Viverse clientId={process.env.NEXT_PUBLIC_VIVERSE_APP_ID || undefined}>
         <Canvas
           className="fixed! w-screen! h-screen! touch-none"

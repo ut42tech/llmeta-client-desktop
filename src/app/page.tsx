@@ -14,7 +14,7 @@ const Viverse = dynamic(
 
 export default function Home() {
   // debug
-  const { stats } = useControls({ stats: true });
+  const { stats } = useControls({ stats: false });
 
   return (
     <>

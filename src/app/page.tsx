@@ -22,7 +22,7 @@ export default function Home() {
       <Loader />
       {stats && <Stats />}
 
-      <OverlayUI className="z-50 fixed! w-screen! h-screen! pointer-events-none" />
+      <OverlayUI />
 
       <Viverse clientId={process.env.NEXT_PUBLIC_VIVERSE_APP_ID || undefined}>
         <Canvas

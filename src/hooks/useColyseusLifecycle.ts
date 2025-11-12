@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useConnectionStore } from "@/stores/connectionStore";
 import {
   COLYSEUS_CONFIG,
   connectToColyseus,
   disconnectFromColyseus,
+  useColyseusRoom,
 } from "@/utils/colyseus";
 
 /**
@@ -22,41 +23,43 @@ export function useColyseusLifecycle(
   const setFailed = useConnectionStore((state) => state.setFailed);
   const setDisconnected = useConnectionStore((state) => state.setDisconnected);
 
+  const room = useColyseusRoom();
+  const roomRef = useRef(room);
+  useEffect(() => {
+    roomRef.current = room;
+    if (room) {
+      setConnected();
+      console.log(`[Colyseus] Successfully connected to room: ${roomName}`);
+    }
+  }, [room, roomName, setConnected]);
+
   useEffect(() => {
     let mounted = true;
-    let connecting = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
 
-    const connect = async () => {
-      // Prevent duplicate connections
-      if (connecting) return;
-      connecting = true;
-
+    setConnecting();
+    (async () => {
       try {
-        setConnecting();
         await connectToColyseus(roomName);
-        if (mounted) {
-          setConnected();
-          console.log(`[Colyseus] Successfully connected to room: ${roomName}`);
-        }
-      } catch (error) {
-        if (mounted) {
-          const message =
-            error instanceof Error ? error.message : String(error);
+        timer = setTimeout(() => {
+          if (!mounted || roomRef.current) return;
+          const message = "Failed to connect to Colyseus!";
           setFailed(message);
-          console.error("[Colyseus] Connection failed:", error);
-        }
-      } finally {
-        connecting = false;
+          console.error("[Colyseus] Connection failed:", message);
+        }, 500);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        if (mounted) setFailed(message);
+        console.error("[Colyseus] Connection failed:", message);
       }
-    };
-
-    connect();
+    })();
 
     return () => {
       mounted = false;
+      if (timer) clearTimeout(timer);
       disconnectFromColyseus();
       setDisconnected();
       console.log("[Colyseus] Disconnected from room");
     };
-  }, [roomName, setConnecting, setConnected, setFailed, setDisconnected]);
+  }, [roomName, setConnecting, setFailed, setDisconnected]);
 }

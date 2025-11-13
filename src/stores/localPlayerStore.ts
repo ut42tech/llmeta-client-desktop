@@ -70,6 +70,9 @@ type LocalPlayerState = {
   // State
   animationState: AnimationName;
 
+  // View mode
+  isFPV: boolean;
+
   // Teleport request handled by Scene (null = no pending teleport)
   pendingTeleport: { position: Vector3; rotation?: Euler } | null;
 
@@ -86,6 +89,8 @@ type LocalPlayerActions = {
   setAction: (actions?: Record<string, AnimationAction | undefined>) => void;
   sendMovement: (room: Room<MyRoomState>) => void;
   teleport: (position: Vector3, rotation?: Euler) => void;
+  setIsFPV: (isFPV: boolean) => void;
+  toggleFPV: () => void;
   reset: () => void;
 };
 
@@ -97,6 +102,7 @@ const initialState: LocalPlayerState = {
   position: INITIAL_PLAYER_POSITION.clone(),
   rotation: INITIAL_PLAYER_ROTATION.clone(),
   animationState: DEFAULT_ANIMATION,
+  isFPV: false,
   lastSentTime: 0,
   pendingTeleport: null,
 };
@@ -190,6 +196,9 @@ export const useLocalPlayerStore = create<LocalPlayerStore>((set, get) => ({
   teleport: (position: Vector3, rotation?: Euler) => {
     set({ pendingTeleport: { position, rotation } });
   },
+
+  setIsFPV: (isFPV: boolean) => set({ isFPV }),
+  toggleFPV: () => set((s) => ({ isFPV: !s.isFPV })),
 
   reset: () => {
     set(initialState);

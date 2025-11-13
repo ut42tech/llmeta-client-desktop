@@ -26,7 +26,9 @@ export const useCharacterController = (
     (state) => state.updateCurrentGridCell,
   );
 
-  useFrame(() => {
+  const isFPV = useLocalPlayerStore((s) => s.isFPV);
+
+  useFrame((state) => {
     const character = characterRef.current;
     if (!character) return;
 
@@ -46,7 +48,12 @@ export const useCharacterController = (
 
     // Update player state
     setPosition(character.position);
-    setRotation(character.model?.scene.rotation || new Euler());
+    if (isFPV) {
+      const camY = state.camera.rotation.y;
+      setRotation(new Euler(0, camY, 0));
+    } else {
+      setRotation(character.model?.scene.rotation || new Euler());
+    }
     setAction(character.actions);
 
     // Send movement to server

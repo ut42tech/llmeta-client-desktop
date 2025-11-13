@@ -35,6 +35,9 @@ const SettingsContentClient = () => {
     [nameInput, username],
   );
 
+  const isFPV = useLocalPlayerStore((s) => s.isFPV);
+  const toggleFPV = useLocalPlayerStore((s) => s.toggleFPV);
+
   const handleUpdateName = () => {
     const newName = nameInput.trim();
     if (!newName) return;
@@ -55,6 +58,19 @@ const SettingsContentClient = () => {
   return (
     <div className="px-4 pb-6">
       <div className="space-y-6">
+        {/* View Mode */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold">View</h3>
+          <div className="flex items-center justify-between py-3 border rounded-md px-3">
+            <div className="text-sm text-muted-foreground">
+              Mode: {isFPV ? "First Person" : "Third Person"}
+            </div>
+            <Button variant="outline" onClick={toggleFPV}>
+              Toggle FPV
+            </Button>
+          </div>
+        </div>
+
         {/* Username */}
         <div className="space-y-3">
           <h3 className="text-sm font-semibold">Username</h3>

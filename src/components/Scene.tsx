@@ -1,5 +1,6 @@
 import { Sky } from "@react-three/drei";
 import {
+  FirstPersonCharacterCameraBehavior,
   SimpleCharacter,
   type SimpleCharacterImpl,
 } from "@react-three/viverse";
@@ -30,6 +31,7 @@ export const Scene = () => {
 
   const characterRef = useRef<SimpleCharacterImpl>(null);
   const directionalLightRef = useRef<DirectionalLight | null>(null);
+  const isFPV = useLocalPlayerStore((s) => s.isFPV);
 
   // Handle character movement, teleport, and sync
   useCharacterController(characterRef, room, isConnected);
@@ -68,7 +70,12 @@ export const Scene = () => {
 
       {/* Local Player */}
       <Suspense fallback={null}>
-        <SimpleCharacter ref={characterRef} />
+        <SimpleCharacter
+          ref={characterRef}
+          // FPVでもモデルは表示（アニメ取得・ミラー反映のため）
+          model={true}
+          cameraBehavior={isFPV ? FirstPersonCharacterCameraBehavior : true}
+        />
       </Suspense>
 
       {/* Remote Players */}

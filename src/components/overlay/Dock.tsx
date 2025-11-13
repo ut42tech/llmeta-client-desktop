@@ -1,5 +1,6 @@
 "use client";
 
+import { SettingsDrawer } from "@/components/overlay/dock-action/SettingsDrawer";
 import { WorldInfoDrawer } from "@/components/overlay/dock-action/WorldInfoDrawer";
 import { YourInfoDrawer } from "@/components/overlay/dock-action/YourInfoDrawer";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,6 +12,7 @@ export const Dock = () => {
         <div className="flex items-center gap-3">
           <WorldInfoDrawer />
           <YourInfoDrawer />
+          <SettingsDrawer />
         </div>
       </TooltipProvider>
     </div>

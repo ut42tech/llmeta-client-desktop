@@ -70,6 +70,9 @@ type LocalPlayerState = {
   // State
   animationState: AnimationName;
 
+  // Teleport request handled by Scene (null = no pending teleport)
+  pendingTeleport: { position: Vector3; rotation?: Euler } | null;
+
   // Last sent time (for throttling)
   lastSentTime: number;
 };
@@ -82,6 +85,7 @@ type LocalPlayerActions = {
   setAnimation: (state: AnimationName) => void;
   setAction: (actions?: Record<string, AnimationAction | undefined>) => void;
   sendMovement: (room: Room<MyRoomState>) => void;
+  teleport: (position: Vector3, rotation?: Euler) => void;
   reset: () => void;
 };
 
@@ -94,6 +98,7 @@ const initialState: LocalPlayerState = {
   rotation: INITIAL_PLAYER_ROTATION.clone(),
   animationState: DEFAULT_ANIMATION,
   lastSentTime: 0,
+  pendingTeleport: null,
 };
 
 export const useLocalPlayerStore = create<LocalPlayerStore>((set, get) => ({
@@ -180,6 +185,10 @@ export const useLocalPlayerStore = create<LocalPlayerStore>((set, get) => ({
     );
     room.send(MessageType.MOVE, moveData);
     set({ lastSentTime: now });
+  },
+
+  teleport: (position: Vector3, rotation?: Euler) => {
+    set({ pendingTeleport: { position, rotation } });
   },
 
   reset: () => {

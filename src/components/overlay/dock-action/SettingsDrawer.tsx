@@ -58,19 +58,6 @@ const SettingsContentClient = () => {
   return (
     <div className="px-4 pb-6">
       <div className="space-y-6">
-        {/* View Mode */}
-        <div className="space-y-3">
-          <h3 className="text-sm font-semibold">View</h3>
-          <div className="flex items-center justify-between py-3 border rounded-md px-3">
-            <div className="text-sm text-muted-foreground">
-              Mode: {isFPV ? "First Person" : "Third Person"}
-            </div>
-            <Button variant="outline" onClick={toggleFPV}>
-              Toggle FPV
-            </Button>
-          </div>
-        </div>
-
         {/* Username */}
         <div className="space-y-3">
           <h3 className="text-sm font-semibold">Username</h3>
@@ -87,7 +74,6 @@ const SettingsContentClient = () => {
             </Button>
           </div>
         </div>
-
         {/* Position */}
         <div className="space-y-3">
           <h3 className="text-sm font-semibold">Position</h3>
@@ -101,6 +87,23 @@ const SettingsContentClient = () => {
             </Button>
           </div>
         </div>
+        {/* View Mode */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold">View</h3>
+          <div className="flex items-center justify-between py-3 border rounded-md px-3">
+            <div className="text-sm text-muted-foreground">
+              Mode: {isFPV ? "First Person" : "Third Person"}
+            </div>
+            <Button variant="outline" onClick={toggleFPV}>
+              Toggle FPV
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Note: FPV is experimental and animations may appear unnatural from
+            other players' perspective.
+          </p>
+        </div>
+        ｓ
       </div>
     </div>
   );

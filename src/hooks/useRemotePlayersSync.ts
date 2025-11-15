@@ -23,6 +23,7 @@ export function useRemotePlayersSync() {
       addOrUpdatePlayer(key, {
         sessionId: key,
         username: player.username,
+        avatar: player.avatar,
         position: new Vector3(
           player.position.x,
           player.position.y,
@@ -44,6 +45,7 @@ export function useRemotePlayersSync() {
     const onChange = (player: Player, key: string) => {
       if (!player || !player.position || !player.rotation) return;
       addOrUpdatePlayer(key, {
+        avatar: player.avatar,
         position: new Vector3(
           player.position.x,
           player.position.y,
